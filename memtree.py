@@ -20,8 +20,7 @@ def tree(p: Path = Path('/sys/fs/cgroup/'), _total: Optional[int] = None) -> Tre
 
     def mtext(q: Path) -> str:
         m = mem(q)
-        pr = ['', 'ki', 'Mi', 'Gi', 'Ti']
-        for (i, p) in enumerate(pr):
+        for (i, p) in enumerate(('', 'ki', 'Mi', 'Gi', 'Ti')):
             if m < 1024**(i+1):
                 break
 
