@@ -2,10 +2,13 @@
 
 from os import sysconf
 from pathlib import Path
+from platform import system
 from typing import Optional
 
 from rich import print
 from rich.tree import Tree
+
+assert system() == 'Linux', f"{__name__} only works on Linux/"
 
 STRIPPED_EXTS = frozenset((
     "scope", "service", "slice"
