@@ -27,12 +27,12 @@ def tree(p: Path = Path('/sys/fs/cgroup/'), _total: Optional[int] = None) -> Tre
         return f"{m / (1024**i):.0f} {p}B"
 
     def name(q: Path) -> str:
-        try:
+        if '.' in q.name:
             prefix, ext = q.name.rsplit(sep='.', maxsplit=1)
-            return prefix if ext in STRIPPED_EXTS else q.name
+            if ext in STRIPPED_EXTS:
+                return prefix
             
-        except ValueError:
-            return q.name
+        return q.name
 
     assert p.is_dir()
     if _total is None:
