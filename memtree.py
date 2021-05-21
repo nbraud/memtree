@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from functools import reduce
 from os import sysconf
 from pathlib import Path
 from platform import system
@@ -38,17 +39,16 @@ def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
         return q.name
 
     def _tree(p: Path) -> Tree:
-        assert p.is_dir()
-
         # TODO: Avoid reading `q/memory.current` 3 times for each cgroup  >_>'
-        children = [ q for q in p.iterdir() if q.is_dir() and mem(q) != 0 ]
-        children.sort(key = mem, reverse = True)
-
         if (p / 'memory.current').exists():
             t = Tree(f"{name(p)}: {mem(p)} ({100 * mem(p) / total :.0f}%)")
         else:
             t = Tree(f"{name(p)}")
 
+        children = sorted(
+            ( q for q in p.iterdir() if q.is_dir() and mem(q) != 0 ),
+            key = mem, reverse = True
+        )
         for q in children:
             t.add(_tree(q))
 
