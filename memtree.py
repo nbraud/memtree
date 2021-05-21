@@ -14,17 +14,20 @@ STRIPPED_EXTS = frozenset((
     "scope", "service", "slice"
 ))
 
-def tree(p: Path = Path('/sys/fs/cgroup/'), _total: Optional[int] = None) -> Tree:
-    def mem(q: Path) -> int:
-        return int((q / 'memory.current').read_text())
-
-    def mtext(q: Path) -> str:
-        m = mem(q)
+class MemoryAmount(int):
+    def __str__(self):
         for (i, p) in enumerate(('', 'ki', 'Mi', 'Gi', 'Ti')):
-            if m < 1024**(i+1):
+            if self < 1024**(i+1):
                 break
 
-        return f"{m / (1024**i):.0f} {p}B"
+        return f"{self / (1024**i):.0f} {p}B"
+
+def total_memory() -> MemoryAmount:
+    return MemoryAmount(sysconf('SC_PAGE_SIZE') * sysconf('SC_PHYS_PAGES'))
+
+def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
+    def mem(q: Path) -> MemoryAmount:
+        return MemoryAmount((q / 'memory.current').read_text())
 
     def name(q: Path) -> str:
         if '.' in q.name:
@@ -34,23 +37,25 @@ def tree(p: Path = Path('/sys/fs/cgroup/'), _total: Optional[int] = None) -> Tre
             
         return q.name
 
-    assert p.is_dir()
-    if _total is None:
-        _total = sysconf('SC_PAGE_SIZE') * sysconf('SC_PHYS_PAGES')
+    def _tree(p: Path) -> Tree:
+        assert p.is_dir()
 
-    # TODO: Avoid reading `q/memory.current` 3 times for each cgroup  >_>'
-    children = [ q for q in p.iterdir() if q.is_dir() and mem(q) != 0 ]
-    children.sort(key = mem, reverse = True)
+        # TODO: Avoid reading `q/memory.current` 3 times for each cgroup  >_>'
+        children = [ q for q in p.iterdir() if q.is_dir() and mem(q) != 0 ]
+        children.sort(key = mem, reverse = True)
 
-    if (p / 'memory.current').exists():
-        t = Tree(f"{name(p)}: {mtext(p)} ({100 * mem(p) / _total :.0f}%)")
-    else:
-        t = Tree(f"{name(p)}")
+        if (p / 'memory.current').exists():
+            t = Tree(f"{name(p)}: {mem(p)} ({100 * mem(p) / total :.0f}%)")
+        else:
+            t = Tree(f"{name(p)}")
 
-    for q in children:
-        t.add(tree(q, _total))
+        for q in children:
+            t.add(_tree(q))
 
-    return t
+        return t
+
+    total = total_memory()
+    return _tree(p)
 
 
 if __name__ == "__main__":
