@@ -6,6 +6,7 @@ authors = [""]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+psutil = "^5.8.0"
 rich = "^10.2.2"
 
 [build-system]

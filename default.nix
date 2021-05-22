@@ -9,6 +9,7 @@ mkShell {
     py
   ] ++ (with py.pkgs; [
     ipython
+    psutil
     rich
   ]);
 }
