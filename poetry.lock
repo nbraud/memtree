@@ -44,7 +44,7 @@ jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7b8bff54fe56e2e03d9d621ad55ef6c4f45f5d6c912e7cd7c25a8df115794fef"
+content-hash = "1c5715bef97ccb3f89f3db23f6e14fe7253c9d3f55a52029380f76478989f34a"
 
 [metadata.files]
 colorama = [
