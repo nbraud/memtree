@@ -17,11 +17,12 @@ STRIPPED_EXTS = frozenset((
 
 class MemoryAmount(int):
     def __str__(self):
-        for (i, p) in enumerate(('', 'ki', 'Mi', 'Gi', 'Ti')):
-            if self < 1024**(i+1):
+        for p in ('', 'ki', 'Mi', 'Gi', 'Ti'):
+            if self < 1024:
                 break
+            self /= 1024
 
-        return f"{self / (1024**i):.0f} {p}B"
+        return f"{self:.0f} {p}B"
 
 def total_memory() -> MemoryAmount:
     return MemoryAmount(sysconf('SC_PAGE_SIZE') * sysconf('SC_PHYS_PAGES'))
