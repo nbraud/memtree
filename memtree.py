@@ -29,7 +29,7 @@ def total_memory() -> MemoryAmount:
 def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
     def mem(q: Path) -> Optional[MemoryAmount]:
         try:
-           return MemoryAmount((q / 'memory.current').read_text())
+            return MemoryAmount((q / 'memory.current').read_text())
         except FileNotFoundError:
             return None
 
