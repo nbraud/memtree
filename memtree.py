@@ -45,8 +45,7 @@ def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
         if m is None:
             t = Tree(f"{name(p)}")
         else:
-            r, g, b = turbo(m / vm.used)
-            t = Tree(f"{name(p)}: {m} ({100 * m/vm.total :.0f}%)", style=f"rgb({r},{g},{b})")
+            t = Tree(f"{name(p)}: {m} ({100 * m/vm.total :.0f}%)", style=turbo(m / vm.used))
 
         children = sorted(
             ( q for q in p.iterdir() if q.is_dir() and mem(q) != 0 ),
@@ -60,7 +59,7 @@ def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
     vm = virtual_memory()
     return _tree(p)
 
-def turbo(x: float) -> Tuple[int, int, int]:
+def turbo(x: float) -> str:
     """The Turbo colormap
 
     Adapted from https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
@@ -79,7 +78,8 @@ def turbo(x: float) -> Tuple[int, int, int]:
     c = (colormap[a][0] + (colormap[b][0] - colormap[a][0]) * f,
          colormap[a][1] + (colormap[b][1] - colormap[a][1]) * f,
          colormap[a][2] + (colormap[b][2] - colormap[a][2]) * f)
-    return tuple(map(lambda y: int(255*y), c))
+    r, g, b = tuple(map(lambda y: int(255*y), c))
+    return f"rgb({r},{g},{b})"
 
 if __name__ == "__main__":
     print(tree())
