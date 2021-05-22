@@ -4,7 +4,7 @@ from functools import reduce
 from os import sysconf
 from pathlib import Path
 from platform import system
-from typing import Optional, Tuple
+from typing import Callable, Optional, Sequence, Tuple, TypeVar
 from warnings import warn
 
 from psutil import virtual_memory
@@ -80,6 +80,15 @@ def turbo(x: float) -> str:
          colormap[a][2] + (colormap[b][2] - colormap[a][2]) * f)
     r, g, b = tuple(map(lambda y: int(255*y), c))
     return f"rgb({r},{g},{b})"
+
+T = TypeVar('T')
+def fixed_palette(p: Sequence[T]) -> Callable[[float], T]:
+    n = len(p)
+    return lambda x: p[min(n-1, int(n * x))]
+
+sixteen = fixed_palette(("blue", "cyan", "green", "yellow", "red", "magenta"))
+ansi_cyan = fixed_palette(("green1", "spring_green2", "spring_green1",
+                           "medium_spring_green", "cyan2", "cyan1"))
 
 if __name__ == "__main__":
     print(tree())
