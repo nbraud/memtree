@@ -2,7 +2,7 @@
 name = "memtree"
 version = "0.1.0"
 description = ""
-authors = [""]
+authors = ["nicoo <nicoo@debian.org>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
