@@ -17,7 +17,7 @@ STRIPPED_EXTS = frozenset((
 
 class MemoryAmount(int):
     def __str__(self):
-        for p in ('', 'ki', 'Mi', 'Gi', 'Ti'):
+        for p in ('', 'ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi'):
             if self < 1024:
                 break
             self /= 1024
