@@ -11,7 +11,7 @@ from rich.tree import Tree
 
 assert system() == 'Linux', f"{__name__} only works on Linux."
 
-STRIPPED_EXTS = frozenset((
+_STRIPPED_EXTS = frozenset((
     "scope", "service", "slice"
 ))
 
@@ -36,7 +36,7 @@ def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
     def name(q: Path) -> str:
         if '.' in q.name:
             prefix, ext = q.name.rsplit(sep='.', maxsplit=1)
-            if ext in STRIPPED_EXTS:
+            if ext in _STRIPPED_EXTS:
                 return prefix
             
         return q.name
