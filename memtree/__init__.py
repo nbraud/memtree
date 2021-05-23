@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from functools import reduce
-from os import sysconf
 from pathlib import Path
 from platform import system
 from typing import Callable, Optional
