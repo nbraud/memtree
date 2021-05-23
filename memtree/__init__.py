@@ -50,7 +50,7 @@ def tree(p: Path = Path("/sys/fs/cgroup/"), *,
         else:
             t = Tree(
                 f"{name(p)}: {m} ({100 * m/vm.total :.0f}%)",
-                style=color(m / vm.used)
+                style=color(m / vm.used),
             )
 
         children = sorted(
