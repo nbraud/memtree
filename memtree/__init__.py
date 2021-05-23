@@ -12,19 +12,18 @@ from .colors import default_palette
 assert system() == "Linux", f"{__name__} only works on Linux."
 
 _STRIPPED_EXTS = frozenset(("scope", "service", "slice"))
+_DEFAULT_NODE = Path("/sys/fs/cgroup/")
 
 
 class MemoryAmount(int):
+    IEC_PREFIXES = ("", "ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi")
+
     def __str__(self):
-        for p in ("", "ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"):
-            if self < 1024:
-                break
-            self /= 1024
-
-        return f"{self:.0f} {p}B"
+        i = min(len(self.IEC_PREFIXES), self.bit_length() // 10)
+        return f"{self / (1024**i):.0f} {self.IEC_PREFIXES[i]}B"
 
 
-def tree(p: Path = Path("/sys/fs/cgroup/"), *,
+def tree(p: Path = _DEFAULT_NODE, *,
          color: Optional[Callable[[float], str]] = None) -> Tree:
     if color is None:
         color = default_palette()
