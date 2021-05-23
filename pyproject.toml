@@ -16,3 +16,11 @@ rich = "^10.2.2"
 
 [tool.poetry.scripts]
 memtree = 'memtree.cli:main'
+
+
+[tool.poetry.dev-dependencies]
+bork = "^5.1.0"
+flake8 = "^3.9.2"
+
+[tool.bork.aliases]
+lint = "python -m flake8"
