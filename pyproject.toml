@@ -21,6 +21,7 @@ memtree = 'memtree.cli:main'
 [tool.poetry.dev-dependencies]
 bork = "^5.1.0"
 flake8 = "^3.9.2"
+flake8-import-order = "^0.18.1"
 
 [tool.bork.aliases]
 lint = "python -m flake8"
