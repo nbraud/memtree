@@ -25,7 +25,10 @@ class MemoryAmount(int):
 
         return f"{self / (1024**i):.0f} {p}B"
 
-def tree(p: Path = Path('/sys/fs/cgroup/'), *, color: Callable[[float], str]) -> Tree:
+def tree(p: Path = Path('/sys/fs/cgroup/'), *, color: Optional[Callable[[float], str]] = None) -> Tree:
+    if color is None:
+        color = default_palette()
+
     def mem(q: Path) -> Optional[MemoryAmount]:
         try:
             return MemoryAmount((q / 'memory.current').read_text())
@@ -90,5 +93,15 @@ sixteen = fixed_palette(("blue", "cyan", "green", "yellow", "red", "magenta"))
 ansi_cyan = fixed_palette(("green1", "spring_green2", "spring_green1",
                            "medium_spring_green", "cyan2", "cyan1"))
 
+def default_palette():
+    from rich.console import Console, ColorSystem
+    cs = Console()._detect_color_system()
+    if cs == ColorSystem.TRUECOLOR:
+        return turbo
+    elif cs == ColorSystem.STANDARD:
+        return ansi_cyan
+    else:
+        return sixteen
+
 if __name__ == "__main__":
-    print(tree(color=turbo))
+    print(tree())
