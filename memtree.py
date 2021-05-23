@@ -25,7 +25,7 @@ class MemoryAmount(int):
 
         return f"{self / (1024**i):.0f} {p}B"
 
-def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
+def tree(p: Path = Path('/sys/fs/cgroup/'), *, color: Callable[[float], str]) -> Tree:
     def mem(q: Path) -> Optional[MemoryAmount]:
         try:
             return MemoryAmount((q / 'memory.current').read_text())
@@ -45,7 +45,7 @@ def tree(p: Path = Path('/sys/fs/cgroup/')) -> Tree:
         if m is None:
             t = Tree(f"{name(p)}")
         else:
-            t = Tree(f"{name(p)}: {m} ({100 * m/vm.total :.0f}%)", style=turbo(m / vm.used))
+            t = Tree(f"{name(p)}: {m} ({100 * m/vm.total :.0f}%)", style=color(m / vm.used))
 
         children = sorted(
             ( q for q in p.iterdir() if q.is_dir() and mem(q) != 0 ),
@@ -91,4 +91,4 @@ ansi_cyan = fixed_palette(("green1", "spring_green2", "spring_green1",
                            "medium_spring_green", "cyan2", "cyan1"))
 
 if __name__ == "__main__":
-    print(tree())
+    print(tree(color=turbo))
