@@ -8,7 +8,6 @@ from typing import Callable, Optional, Sequence, Tuple, TypeVar
 from warnings import warn
 
 from psutil import virtual_memory
-from rich import print
 from rich.tree import Tree
 
 assert system() == 'Linux', f"{__name__} only works on Linux."
@@ -103,6 +102,3 @@ def default_palette():
         return ansi_cyan
     else:
         return sixteen
-
-if __name__ == "__main__":
-    print(tree())
