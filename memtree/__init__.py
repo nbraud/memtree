@@ -19,7 +19,10 @@ class MemoryAmount(int):
     IEC_PREFIXES = ("", "ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi")
 
     def __str__(self):
-        i = min(len(self.IEC_PREFIXES), self.bit_length() // 10)
+        if self == 0:
+            return "0 B"
+
+        i = min(len(self.IEC_PREFIXES), (self.bit_length() - 1) // 10)
         return f"{self / (1024**i):.0f} {self.IEC_PREFIXES[i]}B"
 
 
