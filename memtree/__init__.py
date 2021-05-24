@@ -22,7 +22,7 @@ class MemoryAmount(int):
         if self == 0:
             return "0 B"
 
-        i = min(len(self.IEC_PREFIXES), (self.bit_length() - 1) // 10)
+        i = min(len(self.IEC_PREFIXES) - 1, (self.bit_length() - 1) // 10)
         return f"{self / (1024**i):.0f} {self.IEC_PREFIXES[i]}B"
 
 
