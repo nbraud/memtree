@@ -4,6 +4,10 @@ from hypothesis import given, note, strategies as st
 from memtree import MemoryAmount
 
 
+def test_zero():
+    assert str(MemoryAmount(0)) == '0 B'
+
+
 @pytest.mark.parametrize(
     "multiplier, prefix",
     ((1024 ** e, s) for (e, s) in enumerate(MemoryAmount.IEC_PREFIXES)),
