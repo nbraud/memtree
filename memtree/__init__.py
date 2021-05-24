@@ -19,11 +19,17 @@ class MemoryAmount(int):
     IEC_PREFIXES = ("", "ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi")
 
     def __str__(self):
-        if self == 0:
-            return "0 B"
-
         i = min(len(self.IEC_PREFIXES) - 1, (self.bit_length() - 1) // 10)
-        return f"{self / (1024**i):.0f} {self.IEC_PREFIXES[i]}B"
+        if i < 1:
+            return f"{int(self)} B"
+
+        j = 10 * i  # binary exponent for the unit we selected
+        round = self >> j  # integer part of the result
+        leftover = self & ((1 << j) - 1)  # number of leftover bytes
+        assert self == (round << j) + leftover
+
+        threshold = 1 << (j - 1)  # we round up above this many leftover bytes
+        return f"{round + int(leftover >= threshold)} {self.IEC_PREFIXES[i]}B"
 
 
 def tree(p: Path = _DEFAULT_NODE, *,
