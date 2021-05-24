@@ -19,3 +19,12 @@ Test_task:
     - poetry install --no-root
   script:
     - poetry run bork run test
+
+# Meta-task which depends on every other test/lint task to finish.
+success_task:
+  name: CI success
+  container: {image: "busybox"}
+  script: "exit 0"
+  depends_on:
+    - Lint
+    - Test
