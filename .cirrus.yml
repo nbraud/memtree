@@ -1,0 +1,8 @@
+Lint_task:
+  container:
+    image: python:3-slim
+  install_script:
+    - pip3 install poetry
+    - poetry install --no-root
+  script:
+    - poetry run bork run lint
