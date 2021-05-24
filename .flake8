@@ -1,4 +1,6 @@
 [flake8]
 select = C,E,F,I,N,W,B,B9
 max-line-length = 80
+
 import-order-style = smarkets
+application-import-names = memtree
