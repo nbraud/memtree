@@ -14,6 +14,9 @@
         with import nixpkgs { inherit system; };
         callPackage ./package.nix {};
 
+      packages.ci =
+        import ./ci.nix { pkgs = nixpkgs.legacyPackages.${system}; };
+
       devShells.default =
         import ./shell.nix { pkgs = nixpkgs.legacyPackages.${system}; };
     });

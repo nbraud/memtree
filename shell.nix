@@ -9,23 +9,12 @@ in
 with pkgs;
 
 let
+	ciEnv = import ./ci.nix { inherit pkgs; };
 	drv = callPackage ./package.nix { };
-	extraDependencies = callPackage ./extra-dependencies.nix { };
-
-	devTools = with lib; pipe ./pyproject.toml [
-		readFile
-		builtins.fromTOML
-		(attrByPath [ "tool" "poetry" "dev-dependencies" ] {})
-		attrNames
-		(names: attrVals names (extraDependencies // python3Packages))
-	];
-
 in
-mkShell {
-	nativeBuildInputs = [
+ciEnv.override (self: {
+	nativeBuildInputs = self.nativeBuildInputs ++ [
 		drv
 		poetry
-		python3Packages.poetry-core
-		python3
-	] ++ devTools;
-}
+	];
+})
