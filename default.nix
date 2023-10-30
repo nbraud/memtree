@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> {}}:
 with pkgs;
 
-let py = python39;
+let py = python3;
 in
 mkShell {
   nativeBuildInputs = [
