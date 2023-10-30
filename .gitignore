@@ -1,4 +1,6 @@
 /.direnv
 /dist
-__pycache__/
 /.hypothesis/
+/result
+
+__pycache__/
