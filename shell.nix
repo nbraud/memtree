@@ -6,15 +6,9 @@ let
 	};
 in
 { pkgs ? import nixpkgs { }}:
-with pkgs;
 
-let
-	ciEnv = import ./ci.nix { inherit pkgs; };
-	drv = callPackage ./package.nix { };
-in
-ciEnv.override (self: {
-	nativeBuildInputs = self.nativeBuildInputs ++ [
-		drv
-		poetry
+(import ./ci.nix {}).override (self: {
+	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
+		pkgs.poetry
 	];
 })
