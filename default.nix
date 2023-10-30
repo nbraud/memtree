@@ -5,10 +5,10 @@ let py = python39;
 in
 mkShell {
   nativeBuildInputs = [
+    poetry
     py
   ] ++ (with py.pkgs; [
     ipython
-    poetry
     psutil
     rich
   ]);
