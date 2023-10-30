@@ -2,23 +2,24 @@
 # main, staging, and trying branches. (So bors can use them.)
 use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true' || $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging' || $CIRRUS_BRANCH == 'trying'
 
-Lint_task:
+
+Lint_task: &task
+  env:
+    CACHIX_CACHE_NAME: memtree
+    CACHIX_AUTH_TOKEN: "ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]"
   container:
-    image: python:3-slim
+    image: nixpkgs/cachix
   install_script:
-    - pip3 install poetry
-    - poetry install --no-root
+    - cachix use "$CACHIX_CACHE_NAME"
+    - cachix watch-exec "$CACHIX_CACHE_NAME" -- nix-build --pure ci.nix
   script:
-    - poetry run bork run lint
+    - nix-shell --pure ci.nix --run 'bork run lint'
 
 Test_task:
-  container:
-    image: python:3-slim
-  install_script:
-    - pip3 install poetry
-    - poetry install --no-root
+  <<: *task
   script:
-    - poetry run bork run test
+    - nix-shell --pure ci.nix --run 'bork run test'
+
 
 # Meta-task which depends on every other test/lint task to finish.
 success_task:
