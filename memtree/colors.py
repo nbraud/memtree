@@ -11,15 +11,26 @@ def turbo_data() -> Sequence[Tuple[float, float, float]]:
         return tuple(map(tuple, json.load(f)))
 
 
+T = TypeVar('T')
+
+
+def clip(f: Callable[[float], T]) -> Callable[[float], T]:
+    def g(x: float) -> T:
+        if not 0 <= x <= 1:
+            warn(f"{x!r} is not a normalised value, clipping")
+            x = min(max(0, x), 1)
+        return f(x)
+
+    return g
+
+
+@clip
 def turbo(x: float) -> str:
     """The Turbo colormap
 
     Adapted from gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
     Licensed under Apache-2.0, copyright Google LLC.
     """
-    if not 0 <= x <= 1:
-        warn(f"{x!r} is not a normalised value, clipping")
-        x = min(max(0, x), 1)
 
     # The look-up table contains 256 sRGB triplets
     colormap = turbo_data()
@@ -34,12 +45,9 @@ def turbo(x: float) -> str:
     return f"rgb({r},{g},{b})"
 
 
-T = TypeVar('T')
-
-
 def fixed_palette(p: Sequence[T]) -> Callable[[float], T]:
     n = len(p)
-    return lambda x: p[min(n - 1, int(n * x))]
+    return clip(lambda x: p[min(n - 1, int(n * x))])
 
 
 sixteen = fixed_palette(("blue", "cyan", "green", "yellow", "red", "magenta"))

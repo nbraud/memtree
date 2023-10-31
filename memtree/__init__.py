@@ -4,7 +4,6 @@ from pathlib import Path
 from platform import system
 from typing import Callable, Optional
 
-from psutil import virtual_memory
 from rich.tree import Tree
 
 from .colors import default_palette
@@ -55,10 +54,12 @@ def tree(p: Path = _DEFAULT_NODE, *,
         m = mem(p)
         if m is None:
             t = Tree(f"{name(p)}")
+        elif not total_mem:
+            t = Tree(f"{name(p)}: {m}")
         else:
             t = Tree(
-                f"{name(p)}: {m} ({100 * m/vm.total :.0f}%)",
-                style=color(m / vm.used),
+                f"{name(p)}: {m} ({100 * m/total_mem :.0f}%)",
+                style=color(m / total_mem),
             )
 
         children = sorted(
@@ -71,5 +72,9 @@ def tree(p: Path = _DEFAULT_NODE, *,
 
         return t
 
-    vm = virtual_memory()
+    total_mem = mem(p) or sum(
+        mem(cgroup)
+        for cgroup in p.iterdir()
+        if cgroup.is_dir()
+    )
     return _tree(p)
