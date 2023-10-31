@@ -3,5 +3,10 @@
   "extends": [
     "config:recommended"
   ],
-
+  "enabledManagers": [
+      "nix"
+  ],
+  "nix": {
+      "enabled": true
+  }
 }
