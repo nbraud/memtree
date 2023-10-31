@@ -24,6 +24,7 @@ flake8 = "^6"
 flake8-commas = "^2.0.0"
 flake8-bugbear = "^23"
 flake8-import-order = "^0.18.1"
+flake8-pyproject = "^1.2.3"
 pep8-naming = "^0.13"
 pytest = "^7"
 hypothesis = "^6.13.5"
@@ -31,3 +32,10 @@ hypothesis = "^6.13.5"
 [tool.bork.aliases]
 lint = "python -m flake8"
 test = "python -m pytest -v"
+
+[tool.flake8]
+select = "C,E,F,I,N,W,B,B9"
+max-line-length = 80
+
+import-order-style = "smarkets"
+application-import-names = "memtree"

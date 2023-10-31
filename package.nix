@@ -59,7 +59,6 @@ rec {
 			toSource {
 				root = ./.;
 				fileset = unions [
-					./.flake8
 					./pyproject.toml
 					./memtree
 					./tests
