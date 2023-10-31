@@ -55,7 +55,16 @@ rec {
 		propagatedBuildInputs = dependencies;
 		nativeCheckInputs = dev-dependencies;
 
-		src = ./.;
+		src = with lib.fileset;
+			toSource {
+				root = ./.;
+				fileset = unions [
+					./.flake8
+					./pyproject.toml
+					./memtree
+					./tests
+				];
+			};
 
 		checkPhase = ''
 			bork run lint
