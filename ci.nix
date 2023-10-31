@@ -9,24 +9,11 @@ in
 with pkgs;
 
 let
-	extraDependencies = callPackage ./extra-dependencies.nix { };
-
-	depsAndTools = with lib; pipe ./pyproject.toml [
-		readFile
-		builtins.fromTOML
-		(getAttrFromPath [ "tool" "poetry" ])
-		(getAttrs [ "dependencies" "dev-dependencies" ])
-		attrValues
-		(map attrNames)
-		flatten
-		(remove "python")
-		(names: attrVals names (extraDependencies // python3Packages))
-	];
-
+	pkg = callPackage ./package.nix { };
 in
 lib.makeOverridable mkShell {
 	nativeBuildInputs = [
 		python3
 		python3Packages.poetry-core
-	] ++ depsAndTools;
+	] ++ (with pkg; dependencies ++ dev-dependencies);
 }

@@ -12,20 +12,20 @@ license = "ISC"
 [tool.poetry.dependencies]
 python = "^3.9"
 psutil = "^5.8.0"
-rich = "^10.2.2"
+rich = "^13"
 
 [tool.poetry.scripts]
 memtree = 'memtree.cli:main'
 
 
 [tool.poetry.dev-dependencies]
-bork = "^5.1.0"
-flake8 = "^3.9.2"
-flake8-import-order = "^0.18.1"
+bork = "^6"
+flake8 = "^6"
 flake8-commas = "^2.0.0"
-flake8-bugbear = "^21.4.3"
-pep8-naming = "^0.11.1"
-pytest = "^6.2.4"
+flake8-bugbear = "^23"
+flake8-import-order = "^0.18.1"
+pep8-naming = "^0.13"
+pytest = "^7"
 hypothesis = "^6.13.5"
 
 [tool.bork.aliases]
