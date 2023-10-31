@@ -11,34 +11,57 @@ let
 	inherit (pyproject.tool) poetry;
 
 	extraDependencies = callPackage ./extra-dependencies.nix {};
+
+	inherit (lib) hasPrefix head mapAttrsToList substring;
+
+	versionCheck = dVer: versionSpec:
+		with lib.versions;
+		if hasPrefix "^" versionSpec then
+			# SemVer comparison
+			let sVer = substring 1 (-1) versionSpec; in
+			if major sVer != 0 then
+				(major dVer) == (major sVer) &&
+				(splitVersion dVer) >= (splitVersion sVer)
+			else
+				(major dVer) == 0 &&
+				(minor dVer) == (minor sVer) &&
+				(splitVersion dVer) >= (splitVersion sVer)
+
+		else
+			throw "Unimplemented comparison operator in `${versionSpec}`";
+
+	fromPoetryDeps = mapAttrsToList
+		(name: spec:
+			let drv = (extraDependencies // python3Packages).${name}; in
+			if versionCheck drv.version spec then
+				drv
+			else
+				throw "Package '${name}' at version '${drv.version}' does not meet spec '${spec}'");
 in
 
-buildPythonApplication {
-	pname = poetry.name;
-	pyproject = true;
-	inherit (pyproject.tool.poetry) version;
+rec {
+	dependencies = fromPoetryDeps (builtins.removeAttrs poetry.dependencies ["python"]);
+	dev-dependencies = fromPoetryDeps poetry.dev-dependencies;
 
-	nativeBuildInputs = with python3Packages; [
-		poetry-core
-	];
+	memtree = buildPythonApplication {
+		pname = poetry.name;
+		pyproject = true;
+		inherit (pyproject.tool.poetry) version;
 
-	propagatedBuildInputs = with lib; pipe poetry.dependencies [
-		attrNames
-		(remove "python")
-		(names: attrVals names python3Packages)
-	];
+		nativeBuildInputs = with python3Packages; [
+			poetry-core
+		];
 
-	nativeCheckInputs = with lib; pipe poetry.dev-dependencies [
-		attrNames
-		(names: attrVals names (extraDependencies // python3Packages))
-	];
+		propagatedBuildInputs = dependencies;
+		nativeCheckInputs = dev-dependencies;
 
-	src = ./.;
+		src = ./.;
 
-	checkPhase = ''
-		bork run lint
-		bork run test
-	'';
+		checkPhase = ''
+			bork run lint
+			bork run test
+		'';
 
-	pythonImportChecks = [ "memtree" ];
+		pythonImportChecks = [ "memtree" ];
+	};
 }

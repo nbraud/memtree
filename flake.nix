@@ -12,7 +12,7 @@
     flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (system: {
       packages.default =
         with import nixpkgs { inherit system; };
-        callPackage ./package.nix {};
+        (callPackage ./package.nix {}).memtree;
 
       packages.ci =
         import ./ci.nix { pkgs = nixpkgs.legacyPackages.${system}; };
