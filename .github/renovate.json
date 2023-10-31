@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "configMigration": true,
+  "enabledManagers": [
+      "nix"
+  ],
+  "nix": {
+      "enabled": true
+  }
+}
