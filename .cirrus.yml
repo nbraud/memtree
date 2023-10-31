@@ -9,8 +9,9 @@ Lint_task: &task
     CACHIX_AUTH_TOKEN: "ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]"
   container:
     image: nixpkgs/cachix
-  install_script:
+  config_script:
     - cachix use "$CACHIX_CACHE_NAME"
+  build_script:
     - nix-build --pure ci.nix
   script:
     - nix-shell --pure ci.nix --run 'bork run lint'
@@ -25,6 +26,25 @@ Test_task:
   script:
     - nix-shell --pure ci.nix --run 'bork run test'
 
+Integration_task:
+  <<: *task
+  env:
+    CONFIG_SNIPPET: >-
+      experimental-features = flakes nix-command
+  nix_config_file:
+    path: /etc/nix/nix.conf
+    # TODO: inline this if Cirrus CI supports doing so
+    variable_name: CONFIG_SNIPPET
+  build_script:
+    - nix build .
+  script:
+    - nix run .
+  # Don't push to cache:
+  # - the build input currently depends on the whole repo's contents, so isn't cacheable;
+  # - it's somehow broken for the flake's build:
+  #   https://cirrus-ci.com/task/5650607323742208?logs=cache_update
+  cache_update_script: []
+
 
 # Meta-task which depends on every other test/lint task to finish.
 success_task:
@@ -34,3 +54,4 @@ success_task:
   depends_on:
     - Lint
     - Test
+    - Integration
