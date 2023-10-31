@@ -11,9 +11,14 @@ Lint_task: &task
     image: nixpkgs/cachix
   install_script:
     - cachix use "$CACHIX_CACHE_NAME"
-    - cachix watch-exec "$CACHIX_CACHE_NAME" -- nix-build --pure ci.nix
+    - nix-build --pure ci.nix
   script:
     - nix-shell --pure ci.nix --run 'bork run lint'
+  cache_update_script:
+    - |
+      [ -z "$CACHIX_AUTH_TOKEN" ] || {
+        realpath ./result | cachix push "$CACHIX_CACHE_NAME"
+      }
 
 Test_task:
   <<: *task
