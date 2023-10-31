@@ -53,7 +53,6 @@ rec {
 		];
 
 		propagatedBuildInputs = dependencies;
-		nativeCheckInputs = dev-dependencies;
 
 		src = with lib.fileset;
 			toSource {
@@ -65,10 +64,8 @@ rec {
 				];
 			};
 
-		checkPhase = ''
-			bork run lint
-			bork run test
-		'';
+		# No need to run lints and tests twice each in each CI run.
+		doCheck = false;
 
 		pythonImportChecks = [ "memtree" ];
 	};
