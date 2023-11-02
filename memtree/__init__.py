@@ -31,8 +31,18 @@ class MemoryAmount(int):
         return f"{round + int(leftover >= threshold)} {self.IEC_PREFIXES[i]}B"
 
 
+def demangle_name(name: str) -> str:
+    if "." in name:
+        prefix, ext = name.rsplit(sep=".", maxsplit=1)
+        if ext in _STRIPPED_EXTS:
+            return prefix
+
+    return name
+
+
 def tree(p: Path = _DEFAULT_NODE, *,
-         color: Optional[Callable[[float], str]] = None) -> Tree:
+         color: Optional[Callable[[float], str]] = None,
+         demangle_name: Callable[[str], str] = demangle_name) -> Tree:
     if color is None:
         color = default_palette()
 
@@ -42,23 +52,15 @@ def tree(p: Path = _DEFAULT_NODE, *,
         except FileNotFoundError:
             return None
 
-    def name(q: Path) -> str:
-        if "." in q.name:
-            prefix, ext = q.name.rsplit(sep=".", maxsplit=1)
-            if ext in _STRIPPED_EXTS:
-                return prefix
-
-        return q.name
-
     def _tree(p: Path) -> Tree:
         m = mem(p)
         if m is None:
-            t = Tree(f"{name(p)}")
+            t = Tree(f"{demangle_name(p.name)}")
         elif not total_mem:
-            t = Tree(f"{name(p)}: {m}")
+            t = Tree(f"{demangle_name(p.name)}: {m}")
         else:
             t = Tree(
-                f"{name(p)}: {m} ({100 * m/total_mem :.0f}%)",
+                f"{demangle_name(p.name)}: {m} ({100 * m/total_mem :.0f}%)",
                 style=color(m / total_mem),
             )
 
