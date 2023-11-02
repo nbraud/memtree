@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 from pathlib import Path
 from platform import system
 from typing import Callable, Optional
@@ -11,6 +12,7 @@ from .colors import default_palette
 assert system() == "Linux", f"{__name__} only works on Linux."
 
 _STRIPPED_EXTS = frozenset(("scope", "service", "slice"))
+_EXT_RE = re.compile(f".({'|'.join(_STRIPPED_EXTS)})$")
 _DEFAULT_NODE = Path("/sys/fs/cgroup/")
 
 
@@ -32,12 +34,7 @@ class MemoryAmount(int):
 
 
 def demangle_name(name: str) -> str:
-    if "." in name:
-        prefix, ext = name.rsplit(sep=".", maxsplit=1)
-        if ext in _STRIPPED_EXTS:
-            return prefix
-
-    return name
+    return _EXT_RE.sub('', name)
 
 
 def tree(p: Path = _DEFAULT_NODE, *,
