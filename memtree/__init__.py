@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import re
+import re, string
 from pathlib import Path
 from platform import system
 from typing import Callable, Optional
@@ -13,6 +13,8 @@ assert system() == "Linux", f"{__name__} only works on Linux."
 
 _STRIPPED_EXTS = frozenset(("scope", "service", "slice"))
 _EXT_RE = re.compile(f".({'|'.join(_STRIPPED_EXTS)})$")
+_HEX_RE = re.compile(r"\\x[0-9a-fA-F]{2}")
+_PRINTABLE_NONSPACE = set(string.printable) - set(string.whitespace)
 _DEFAULT_NODE = Path("/sys/fs/cgroup/")
 
 
@@ -34,7 +36,15 @@ class MemoryAmount(int):
 
 
 def demangle_name(name: str) -> str:
-    return _EXT_RE.sub('', name)
+    def from_hex(m) -> str:
+        # Possibly inefficient, but lazy  ^^
+        decoded = m[0].encode().decode('unicode_escape')
+        if decoded in _PRINTABLE_NONSPACE:
+            return decoded
+
+        return m[0]  # No change
+
+    return _HEX_RE.sub(from_hex, _EXT_RE.sub('', name))
 
 
 def tree(p: Path = _DEFAULT_NODE, *,
