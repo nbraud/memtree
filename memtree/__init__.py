@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re, string
 from pathlib import Path
 from platform import system
 from typing import Callable, Optional
@@ -11,6 +12,9 @@ from .colors import default_palette
 assert system() == "Linux", f"{__name__} only works on Linux."
 
 _STRIPPED_EXTS = frozenset(("scope", "service", "slice"))
+_EXT_RE = re.compile(f".({'|'.join(_STRIPPED_EXTS)})$")
+_HEX_RE = re.compile(r"\\x[0-9a-fA-F]{2}")
+_PRINTABLE_NONSPACE = set(string.printable) - set(string.whitespace)
 _DEFAULT_NODE = Path("/sys/fs/cgroup/")
 
 
@@ -31,8 +35,21 @@ class MemoryAmount(int):
         return f"{round + int(leftover >= threshold)} {self.IEC_PREFIXES[i]}B"
 
 
+def demangle_name(name: str) -> str:
+    def from_hex(m) -> str:
+        # Possibly inefficient, but lazy  ^^
+        decoded = m[0].encode().decode('unicode_escape')
+        if decoded in _PRINTABLE_NONSPACE:
+            return decoded
+
+        return m[0]  # No change
+
+    return _HEX_RE.sub(from_hex, _EXT_RE.sub('', name))
+
+
 def tree(p: Path = _DEFAULT_NODE, *,
-         color: Optional[Callable[[float], str]] = None) -> Tree:
+         color: Optional[Callable[[float], str]] = None,
+         demangle_name: Callable[[str], str] = demangle_name) -> Tree:
     if color is None:
         color = default_palette()
 
@@ -42,23 +59,15 @@ def tree(p: Path = _DEFAULT_NODE, *,
         except FileNotFoundError:
             return None
 
-    def name(q: Path) -> str:
-        if "." in q.name:
-            prefix, ext = q.name.rsplit(sep=".", maxsplit=1)
-            if ext in _STRIPPED_EXTS:
-                return prefix
-
-        return q.name
-
     def _tree(p: Path) -> Tree:
         m = mem(p)
         if m is None:
-            t = Tree(f"{name(p)}")
+            t = Tree(f"{demangle_name(p.name)}")
         elif not total_mem:
-            t = Tree(f"{name(p)}: {m}")
+            t = Tree(f"{demangle_name(p.name)}: {m}")
         else:
             t = Tree(
-                f"{name(p)}: {m} ({100 * m/total_mem :.0f}%)",
+                f"{demangle_name(p.name)}: {m} ({100 * m/total_mem :.0f}%)",
                 style=color(m / total_mem),
             )
 

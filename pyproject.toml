@@ -34,6 +34,7 @@ test = "python -m pytest -v"
 
 [tool.flake8]
 select = "C,E,F,I,N,W,B,B9"
+ignore = "E401"
 max-line-length = 80
 
 import-order-style = "smarkets"
