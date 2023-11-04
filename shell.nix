@@ -7,7 +7,7 @@ let
 in
 { pkgs ? import nixpkgs { }}:
 
-(import ./ci.nix {}).override (self: {
+(import ./ci.nix { inherit pkgs; }).override (self: {
 	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
 		pkgs.poetry
 	];
