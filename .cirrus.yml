@@ -27,14 +27,11 @@ Test_task:
     - nix-shell --pure ci.nix --run 'bork run test'
 
 Integration_task:
-  <<: *task
-  env:
-    CONFIG_SNIPPET: >-
-      experimental-features = flakes nix-command
   nix_config_file:
     path: /etc/nix/nix.conf
-    # TODO: inline this if Cirrus CI supports doing so
-    variable_name: CONFIG_SNIPPET
+    from_contents: >-
+      experimental-features = flakes nix-command
+  <<: *task
   build_script:
     - nix build .
   script:
