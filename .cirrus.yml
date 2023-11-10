@@ -9,6 +9,7 @@ Lint_task: &task
     CACHIX_AUTH_TOKEN: "ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]"
   container:
     image: nixpkgs/cachix
+    use_in_memory_disk: true
   config_script:
     - cachix use "$CACHIX_CACHE_NAME"
   build_script:
