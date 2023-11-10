@@ -10,6 +10,8 @@ Lint_task: &task
   container:
     image: nixpkgs/cachix
     use_in_memory_disk: true
+    cpu: 1
+    memory: 1G
   config_script:
     - cachix use "$CACHIX_CACHE_NAME"
   build_script:
