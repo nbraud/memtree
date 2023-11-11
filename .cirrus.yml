@@ -40,14 +40,22 @@ Integration_task:
 
 flake_task:
   name: Devour the Nix flake
+  # Incorrect in principle, as the build depends on memtree's source but it's
+  #  slow and highly-unlikely to fail without the integration task failing too
+  only_if: >
+    changesInclude('.cirrus.yml', '*.nix', 'flake.lock', 'pyproject.toml')
+    || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
+    || $CIRRUS_BRANCH =~ 'staging|trying'
   nix_config_file: &nix_conf
     path: /etc/nix/nix.conf
     from_contents: >-
       experimental-features = flakes nix-command
   <<: *task
   build_script: []
-  script: nix run .#devour-self
-  cache_update_script: []
+  script: "nix run .#devour-self | tee result"
+  cache_update_script: >
+    [ -z "$CACHIX_AUTH_TOKEN" ] ||
+    cachix push "$CACHIX_CACHE_NAME" < ./result
 
 
 # Linting the CI & Nix configuration
@@ -95,6 +103,7 @@ success_task:
   script: "exit 0"
   depends_on:
     - Check `extra-dependencies.nix` for extraneous definitions
+    - Devour the Nix flake
     - Lint
     - Lint .cirrus.yml
     - Lint the Nix code
