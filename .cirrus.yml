@@ -50,7 +50,7 @@ flake_task:
   cache_update_script: []
 
 
-# Linting the CI configuration
+# Linting the CI & Nix configuration
 #  using non-pinned versions through nixery.dev is “probably fine” here
 yaml_task:
   name: Lint .cirrus.yml
@@ -58,6 +58,13 @@ yaml_task:
     image: nixery.dev/shell/yamllint
   script: yamllint .cirrus.yml
   only_if: changesInclude('.cirrus.yml')
+
+nixlint_task:
+  name: Lint the Nix code
+  only_if: changesInclude('.cirrus.yml', 'flake.lock', '*.nix')
+  container:
+    image: nixery.dev/shell/deadnix
+  deadcode_script: deadnix -h --fail
 
 
 # Meta-task used by services like Bors or GitHub to check overall success
@@ -68,5 +75,6 @@ success_task:
   depends_on:
     - Lint
     - Lint .cirrus.yml
+    - Lint the Nix code
     - Test
     - Integration
