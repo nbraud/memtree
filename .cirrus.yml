@@ -1,12 +1,18 @@
+---
 # Allow compute credits usage for collaborators and anything pushed to the
 # main, staging, and trying branches. (So bors can use them.)
-use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true' || $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging' || $CIRRUS_BRANCH == 'trying'
+use_compute_credits: |
+  $CIRRUS_USER_COLLABORATOR == 'true' ||
+  $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH ||
+  $CIRRUS_BRANCH =~ 'staging|trying'
 
 
 Lint_task: &task
   env:
     CACHIX_CACHE_NAME: memtree
-    CACHIX_AUTH_TOKEN: "ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]"
+    CACHIX_AUTH_TOKEN: >
+      ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb
+      0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]
   container:
     image: nixpkgs/cachix
   config_script:
@@ -34,7 +40,7 @@ Integration_task:
 
 flake_task:
   name: Devour the Nix flake
-  nix_config_file:
+  nix_config_file: &nix_conf
     path: /etc/nix/nix.conf
     from_contents: >-
       experimental-features = flakes nix-command
@@ -44,12 +50,53 @@ flake_task:
   cache_update_script: []
 
 
-# Meta-task which depends on every other test/lint task to finish.
+# Linting the CI & Nix configuration
+#  using non-pinned versions through nixery.dev is “probably fine” here
+yaml_task:
+  name: Lint .cirrus.yml
+  container:
+    image: nixery.dev/shell/yamllint
+  script: yamllint .cirrus.yml
+  only_if: changesInclude('.cirrus.yml')
+
+nixlint_task:
+  name: Lint the Nix code
+  only_if: changesInclude('.cirrus.yml', 'flake.lock', '*.nix')
+  container:
+    image: nixery.dev/shell/deadnix/jq
+  deadcode_script: >-
+    deadnix -h --fail --output-format json |
+    jq -cf ./.ci/deadnix.jq > deadnix.json
+  always:
+    artifacts:
+      path: "*.json"
+      type: text/json
+      format: cirrus
+
+
+extraneous_task:
+  name: Check `extra-dependencies.nix` for extraneous definitions
+  only_if: changesInclude('.cirrus.yml', 'extra-dependencies.nix', 'flake.*')
+  container:
+    image: nixpkgs/nix  # nix itself doesn't run under nixery.dev out-of-the-box
+  nix_config_file: *nix_conf
+  script: |
+    EXTRANEOUS="$(cat $(nix build --print-out-paths --no-link .#extraneous))"
+    [ -z "${EXTRANEOUS}" ] || {
+      echo "'extra-dependencies.nix' has extraneous definitions: ${EXTRANEOUS}"
+      exit 1
+    }
+
+
+# Meta-task used by services like Bors or GitHub to check overall success
 success_task:
   name: CI success
   container: {image: "busybox"}
   script: "exit 0"
   depends_on:
+    - Check `extra-dependencies.nix` for extraneous definitions
     - Lint
+    - Lint .cirrus.yml
+    - Lint the Nix code
     - Test
     - Integration

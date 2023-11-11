@@ -11,7 +11,7 @@
 		devour-flake.flake = false;
 	};
 
-	outputs = { self, devour-flake, flake-utils, nixpkgs }:
+	outputs = { devour-flake, flake-utils, nixpkgs, ... }:
 		# TODO: Figure out the whole nix-systems/linux thing
 		flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (system:
 			let pkgs = import nixpkgs { inherit system; };
@@ -21,6 +21,12 @@
 					devour-self = writeShellScriptBin "devour-self" ''
 						exec ${lib.getExe (callPackage devour-flake {})} "$PWD" "$@"
 					'';
+					extraneous = with lib; pipe (callPackage ./extra-dependencies.nix {}) [
+						attrNames
+						(filter (pname: pkgs ? pname || python3Packages ? pname))
+						(concatStringsSep ", ")
+						(writeText "extraneous.json")
+					];
 				};
 
 				devShells.ci      = import ./ci.nix    { inherit pkgs; };

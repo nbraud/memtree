@@ -1,12 +1,9 @@
 # Dev. dependencies which aren't yet in nixpkgs
-{ lib
-, fetchFromGitHub
-, python3Packages
-, ... }:
-
+{ fetchFromGitHub, python3Packages }:
 let
   inherit (python3Packages) buildPythonPackage;
 in
+
 {
 	bork = buildPythonPackage rec {
 		pname = "bork";

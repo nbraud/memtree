@@ -9,7 +9,9 @@ in
 
 (import ./ci.nix { inherit pkgs; }).override (self: {
 	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
+		deadnix
 		python3Packages.ipython
-		pkgs.poetry
+		poetry
+		yamllint
 	];
 })
