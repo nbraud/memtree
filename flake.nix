@@ -9,11 +9,14 @@
 
 		# We are using `devour-flake` as a package
 		devour-flake.flake = false;
+
+		# Allow users of the flake to override the set of supported systems
+		systems.url = "github:nix-systems/default-linux";
+		flake-utils.inputs.systems.follows = "systems";
 	};
 
-	outputs = { self, devour-flake, flake-utils, nixpkgs }:
-		# TODO: Figure out the whole nix-systems/linux thing
-		flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (system:
+	outputs = { self, devour-flake, flake-utils, nixpkgs, ... }:
+		flake-utils.lib.eachDefaultSystem (system:
 			let pkgs = import nixpkgs { inherit system; };
 			in {
 				packages = with pkgs; {
