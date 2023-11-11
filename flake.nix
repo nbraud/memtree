@@ -19,7 +19,7 @@
 				packages = with pkgs; {
 					default = (callPackage ./package.nix {}).memtree;
 					devour-self = writeShellScriptBin "devour-self" ''
-						exec ${lib.getExe (callPackage devour-flake {})} ${builtins.toString ./.} "$@"
+						exec ${lib.getExe (callPackage devour-flake {})} "$PWD" "$@"
 					'';
 				};
 
