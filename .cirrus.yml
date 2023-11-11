@@ -41,17 +41,19 @@ Integration_task:
 
 flake_task:
   name: Devour the Nix flake
+  <<: *task
   # Incorrect in principle, as the build depends on memtree's source but it's
   #  slow and highly-unlikely to fail without the integration task failing too
   only_if: >
     changesInclude('.cirrus.yml', '*.nix', 'flake.lock', 'pyproject.toml')
     || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
     || $CIRRUS_BRANCH =~ 'staging|trying'
+  container: &flake_container
+    image: nixery.dev/shell/cachix/git/nix/python3
   nix_config_file: &nix_conf
     path: /etc/nix/nix.conf
     from_contents: >-
       experimental-features = flakes nix-command
-  <<: *task
   build_script: []
   script: "nix run .#devour-self | tee result"
   cache_update_script: >
@@ -86,8 +88,7 @@ nixlint_task:
 extraneous_task:
   name: Check `extra-dependencies.nix` for extraneous definitions
   only_if: changesInclude('.cirrus.yml', 'extra-dependencies.nix', 'flake.*')
-  container:
-    image: nixpkgs/nix  # nix itself doesn't run under nixery.dev out-of-the-box
+  container: *flake_container
   nix_config_file: *nix_conf
   script: |
     EXTRANEOUS="$(cat $(nix build --print-out-paths --no-link .#extraneous))"
