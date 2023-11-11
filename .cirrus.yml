@@ -27,20 +27,9 @@ Test_task:
     - nix-shell --pure ci.nix --run 'bork run test'
 
 Integration_task:
-  nix_config_file:
-    path: /etc/nix/nix.conf
-    from_contents: >-
-      experimental-features = flakes nix-command
   <<: *task
-  build_script:
-    - nix build .
   script:
-    - nix run .
-  # Don't push to cache:
-  # - the build input currently depends on the whole repo's contents, so isn't cacheable;
-  # - it's somehow broken for the flake's build:
-  #   https://cirrus-ci.com/task/5650607323742208?logs=cache_update
-  cache_update_script: []
+    - nix-shell --pure ci.nix --run 'python -m memtree'
 
 
 # Meta-task which depends on every other test/lint task to finish.
