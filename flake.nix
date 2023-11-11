@@ -1,23 +1,29 @@
 {
-  description = "Dev environment for `memtree`";
+	description = "Dev environment for `memtree`";
 
-  inputs = {
-    # Actual versions are pinned in lockfile
-    flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  };
+	inputs = {
+		# Actual versions are pinned in lockfile
+		devour-flake.url = "github:srid/devour-flake";
+		flake-utils.url = "github:numtide/flake-utils";
+		nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-  outputs = { self, flake-utils, nixpkgs }:
-    # TODO: Figure out the whole nix-systems/linux thing
-    flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (system: {
-      packages.default =
-        with import nixpkgs { inherit system; };
-        (callPackage ./package.nix {}).memtree;
+		# We are using `devour-flake` as a package
+		devour-flake.flake = false;
+	};
 
-      packages.ci =
-        import ./ci.nix { pkgs = nixpkgs.legacyPackages.${system}; };
+	outputs = { self, devour-flake, flake-utils, nixpkgs }:
+		# TODO: Figure out the whole nix-systems/linux thing
+		flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (system:
+			let pkgs = import nixpkgs { inherit system; };
+			in {
+				packages = with pkgs; {
+					default = (callPackage ./package.nix {}).memtree;
+					devour-self = writeShellScriptBin "devour-self" ''
+						exec ${lib.getExe (callPackage devour-flake {})} ${builtins.toString ./.} "$@"
+					'';
+				};
 
-      devShells.default =
-        import ./shell.nix { pkgs = nixpkgs.legacyPackages.${system}; };
-    });
+				devShells.ci      = import ./ci.nix    { inherit pkgs; };
+				devShells.default = import ./shell.nix { inherit pkgs; };
+			});
 }

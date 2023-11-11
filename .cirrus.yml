@@ -32,6 +32,18 @@ Integration_task:
     - nix-shell --pure ci.nix --run 'python -m memtree'
 
 
+flake_task:
+  name: Devour the Nix flake
+  nix_config_file:
+    path: /etc/nix/nix.conf
+    from_contents: >-
+      experimental-features = flakes nix-command
+  <<: *task
+  build_script: []
+  script: nix run .#devour-self
+  cache_update_script: []
+
+
 # Meta-task which depends on every other test/lint task to finish.
 success_task:
   name: CI success
