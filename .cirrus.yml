@@ -50,6 +50,7 @@ success_task:
   container: {image: "busybox"}
   script: "exit 0"
   depends_on:
+    - Devour the Nix flake
     - Lint
     - Test
     - Integration
