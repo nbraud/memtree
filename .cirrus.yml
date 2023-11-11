@@ -50,6 +50,16 @@ flake_task:
   cache_update_script: []
 
 
+# Linting the CI configuration
+#  using non-pinned versions through nixery.dev is “probably fine” here
+yaml_task:
+  name: Lint .cirrus.yml
+  container:
+    image: nixery.dev/shell/yamllint
+  script: yamllint .cirrus.yml
+  only_if: changesInclude('.cirrus.yml')
+
+
 # Meta-task used by services like Bors or GitHub to check overall success
 success_task:
   name: CI success
@@ -57,5 +67,6 @@ success_task:
   script: "exit 0"
   depends_on:
     - Lint
+    - Lint .cirrus.yml
     - Test
     - Integration

@@ -11,5 +11,6 @@ in
 	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
 		python3Packages.ipython
 		pkgs.poetry
+		yamllint
 	];
 })
