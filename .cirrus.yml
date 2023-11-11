@@ -46,8 +46,10 @@ flake_task:
       experimental-features = flakes nix-command
   <<: *task
   build_script: []
-  script: nix run .#devour-self
-  cache_update_script: []
+  script: "nix run .#devour-self | tee result"
+  cache_update_script: >
+    [ -z "$CACHIX_AUTH_TOKEN" ] ||
+    cachix push "$CACHIX_CACHE_NAME" < ./result
 
 
 # Meta-task which depends on every other test/lint task to finish.
