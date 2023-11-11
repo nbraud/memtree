@@ -21,7 +21,6 @@ Lint_task: &task
     from_contents: |
       experimental-features = auto-allocate-uids flakes nix-command
       auto-allocate-uids = true
-      sandbox = false  # Annoying to get running in a container
   passwd_file:
     path: /etc/nix/passwd
     from_contents: |
