@@ -63,8 +63,16 @@ nixlint_task:
   name: Lint the Nix code
   only_if: changesInclude('.cirrus.yml', 'flake.lock', '*.nix')
   container:
-    image: nixery.dev/shell/deadnix
-  deadcode_script: deadnix -h --fail
+    image: nixery.dev/shell/deadnix/jq
+  deadcode_script: >-
+    deadnix -h --fail --output-format json |
+    jq -cf ./.ci/deadnix.jq > deadnix.json
+  always:
+    artifacts:
+      path: "*.json"
+      type: text/json
+      format: cirrus
+
 
 extraneous_task:
   name: Check `extra-dependencies.nix` for extraneous definitions
