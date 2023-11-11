@@ -1,8 +1,7 @@
 { lib
 , callPackage
-, poetry
 , python3Packages
-, ... }:
+}:
 
 let
 	inherit (python3Packages) buildPythonApplication;
@@ -12,7 +11,7 @@ let
 
 	extraDependencies = callPackage ./extra-dependencies.nix {};
 
-	inherit (lib) hasPrefix head mapAttrsToList substring;
+	inherit (lib) hasPrefix mapAttrsToList substring;
 
 	versionCheck = dVer: versionSpec:
 		with lib.versions;
