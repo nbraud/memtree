@@ -34,6 +34,12 @@ Integration_task:
 
 flake_task:
   name: Devour the Nix flake
+  # Incorrect in principle, as the build depends on memtree's source but it's
+  #  slow and highly-unlikely to fail without the integration task failing too
+  only_if: >
+    changesInclude('.cirrus.yml', '*.nix', 'flake.lock', 'pyproject.toml')
+    || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
+    || $CIRRUS_BRANCH =~ 'staging|trying'
   nix_config_file:
     path: /etc/nix/nix.conf
     from_contents: >-
