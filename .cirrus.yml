@@ -81,10 +81,9 @@ extraneous_task:
     image: nixpkgs/nix  # nix itself doesn't run under nixery.dev out-of-the-box
   nix_config_file: *nix_conf
   script: |
-    EXTRANEOUS="$(nix build --print-out-paths --no-link .#extraneous)"
-    [ -s "$EXTRANEOUS" ] || {
-      echo "'extra-dependencies.nix' contains extraneous definitions:"
-      cat "$EXTRANEOUS"
+    EXTRANEOUS="$(cat $(nix build --print-out-paths --no-link .#extraneous))"
+    [ -z "${EXTRANEOUS}" ] || {
+      echo "'extra-dependencies.nix' has extraneous definitions: ${EXTRANEOUS}"
       exit 1
     }
 
