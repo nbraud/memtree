@@ -16,6 +16,11 @@ Lint_task: &task
     USER: root
   container:
     image: nixery.dev/shell/cachix/nix/python3
+  nix_config_file:
+    path: /etc/nix/nix.conf
+    from_contents: |
+      experimental-features = flakes nix-command
+      sandbox = false  # Annoying to get running in a container
   config_script:
     - cachix use "$CACHIX_CACHE_NAME"
   build_script:
@@ -50,10 +55,6 @@ flake_task:
     || $CIRRUS_BRANCH =~ 'staging|trying'
   container: &flake_container
     image: nixery.dev/shell/cachix/git/nix/python3
-  nix_config_file: &nix_conf
-    path: /etc/nix/nix.conf
-    from_contents: >-
-      experimental-features = flakes nix-command
   build_script: []
   script: "nix run .#devour-self | tee result"
   cache_update_script: >
@@ -89,7 +90,6 @@ extraneous_task:
   name: Check `extra-dependencies.nix` for extraneous definitions
   only_if: changesInclude('.cirrus.yml', 'extra-dependencies.nix', 'flake.*')
   container: *flake_container
-  nix_config_file: *nix_conf
   script: |
     EXTRANEOUS="$(cat $(nix build --print-out-paths --no-link .#extraneous))"
     [ -z "${EXTRANEOUS}" ] || {
