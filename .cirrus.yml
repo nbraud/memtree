@@ -13,8 +13,23 @@ Lint_task: &task
     CACHIX_AUTH_TOKEN: >
       ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb
       0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]
+    USER: root
   container:
-    image: nixpkgs/cachix
+    image: nixery.dev/shell/cachix/nix/python3
+  nix_config_file:
+    path: /etc/nix/nix.conf
+    from_contents: |
+      experimental-features = auto-allocate-uids flakes nix-command
+      auto-allocate-uids = true
+  passwd_file:
+    path: /etc/nix/passwd
+    from_contents: |
+      root:x:0:0:System administrator:/root:/bin/sh
+  group_file:
+    path: /etc/group
+    from_contents: |
+      root:x:0:
+      nixbld:x:30000:
   config_script:
     - cachix use "$CACHIX_CACHE_NAME"
   build_script:
@@ -40,17 +55,15 @@ Integration_task:
 
 flake_task:
   name: Devour the Nix flake
+  <<: *task
   # Incorrect in principle, as the build depends on memtree's source but it's
   #  slow and highly-unlikely to fail without the integration task failing too
   only_if: >
     changesInclude('.cirrus.yml', '*.nix', 'flake.lock', 'pyproject.toml')
     || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
     || $CIRRUS_BRANCH =~ 'staging|trying'
-  nix_config_file: &nix_conf
-    path: /etc/nix/nix.conf
-    from_contents: >-
-      experimental-features = flakes nix-command
-  <<: *task
+  container: &flake_container
+    image: nixery.dev/shell/cachix/git/nix/python3
   build_script: []
   script: "nix run .#devour-self | tee result"
   cache_update_script: >
@@ -85,9 +98,7 @@ nixlint_task:
 extraneous_task:
   name: Check `extra-dependencies.nix` for extraneous definitions
   only_if: changesInclude('.cirrus.yml', 'extra-dependencies.nix', 'flake.*')
-  container:
-    image: nixpkgs/nix  # nix itself doesn't run under nixery.dev out-of-the-box
-  nix_config_file: *nix_conf
+  container: *flake_container
   script: |
     EXTRANEOUS="$(cat $(nix build --print-out-paths --no-link .#extraneous))"
     [ -z "${EXTRANEOUS}" ] || {
