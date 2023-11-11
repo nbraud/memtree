@@ -21,6 +21,12 @@
 					devour-self = writeShellScriptBin "devour-self" ''
 						exec ${lib.getExe (callPackage devour-flake {})} ${builtins.toString ./.} "$@"
 					'';
+					extraneous = with lib; pipe (callPackage ./extra-dependencies.nix {}) [
+						attrNames
+						(filter (pname: pkgs ? pname || python3Packages ? pname))
+						(concatStringsSep ", ")
+						(writeText "extraneous.json")
+					];
 				};
 
 				devShells.ci      = import ./ci.nix    { inherit pkgs; };

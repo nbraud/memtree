@@ -40,7 +40,7 @@ Integration_task:
 
 flake_task:
   name: Devour the Nix flake
-  nix_config_file:
+  nix_config_file: &nix_conf
     path: /etc/nix/nix.conf
     from_contents: >-
       experimental-features = flakes nix-command
@@ -66,6 +66,20 @@ nixlint_task:
     image: nixery.dev/shell/deadnix
   deadcode_script: deadnix -h --fail
 
+extraneous_task:
+  name: Check `extra-dependencies.nix` for extraneous definitions
+  only_if: changesInclude('.cirrus.yml', 'extra-dependencies.nix', 'flake.*')
+  container:
+    image: nixpkgs/nix  # nix itself doesn't run under nixery.dev out-of-the-box
+  nix_config_file: *nix_conf
+  script: |
+    EXTRANEOUS="$(nix build --print-out-paths --no-link .#extraneous)"
+    [ -s "$EXTRANEOUS" ] || {
+      echo "'extra-dependencies.nix' contains extraneous definitions:"
+      cat "$EXTRANEOUS"
+      exit 1
+    }
+
 
 # Meta-task used by services like Bors or GitHub to check overall success
 success_task:
@@ -73,6 +87,7 @@ success_task:
   container: {image: "busybox"}
   script: "exit 0"
   depends_on:
+    - Check `extra-dependencies.nix` for extraneous definitions
     - Lint
     - Lint .cirrus.yml
     - Lint the Nix code
