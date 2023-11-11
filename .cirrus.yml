@@ -19,8 +19,18 @@ Lint_task: &task
   nix_config_file:
     path: /etc/nix/nix.conf
     from_contents: |
-      experimental-features = flakes nix-command
+      experimental-features = auto-allocate-uids flakes nix-command
+      auto-allocate-uids = true
       sandbox = false  # Annoying to get running in a container
+  passwd_file:
+    path: /etc/nix/passwd
+    from_contents: |
+      root:x:0:0:System administrator:/root:/bin/sh
+  group_file:
+    path: /etc/group
+    from_contents: |
+      root:x:0:
+      nixbld:x:30000:
   config_script:
     - cachix use "$CACHIX_CACHE_NAME"
   build_script:
