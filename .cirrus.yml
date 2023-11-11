@@ -3,37 +3,50 @@
 use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true' || $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging' || $CIRRUS_BRANCH == 'trying'
 
 
-Lint_task: &task
+# YAML anchors containing shared configuration
+_c: &container_spec
+  image: nixpkgs/cachix
+
+_t: &task
   env:
     CACHIX_CACHE_NAME: memtree
-    CACHIX_AUTH_TOKEN: "ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]"
-  container:
-    image: nixpkgs/cachix
+    CACHIX_AUTH_TOKEN: |
+      ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb
+      0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]
   config_script:
     - cachix use "$CACHIX_CACHE_NAME"
   build_script:
     - nix-build --pure ci.nix
-  script:
-    - nix-shell --pure ci.nix --run 'bork run lint'
   cache_update_script:
     - |
       [ -z "$CACHIX_AUTH_TOKEN" ] || {
         realpath ./result | cachix push "$CACHIX_CACHE_NAME"
       }
 
-Test_task:
+_m: &multiarch_matrix
+  - container:     *container_spec
+  - arm_container: *container_spec
+
+
+# Task definitions
+Lint_task:
+  container: *container_spec
   <<: *task
-  script:
-    - nix-shell --pure ci.nix --run 'bork run test'
+  script: nix-shell --pure ci.nix --run 'bork run lint'
+
+Test_task:
+  matrix: *multiarch_matrix
+  <<: *task
+  script: nix-shell --pure ci.nix --run 'bork run test'
 
 Integration_task:
+  matrix: *multiarch_matrix
   <<: *task
-  script:
-    - nix-shell --pure ci.nix --run 'python -m memtree'
-
+  script: nix-shell --pure ci.nix --run 'python -m memtree'
 
 flake_task:
   name: Devour the Nix flake
+  matrix: *multiarch_matrix
   nix_config_file:
     path: /etc/nix/nix.conf
     from_contents: >-
