@@ -9,6 +9,7 @@ in
 
 (import ./ci.nix { inherit pkgs; }).override (self: {
 	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
+		python3Packages.ipython
 		pkgs.poetry
 	];
 })
