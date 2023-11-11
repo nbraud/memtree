@@ -11,7 +11,7 @@ in
 	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
 		deadnix
 		python3Packages.ipython
-		pkgs.poetry
+		poetry
 		yamllint
 	];
 })
