@@ -50,7 +50,7 @@ flake_task:
   cache_update_script: []
 
 
-# Meta-task which depends on every other test/lint task to finish.
+# Meta-task used by services like Bors or GitHub to check overall success
 success_task:
   name: CI success
   container: {image: "busybox"}
