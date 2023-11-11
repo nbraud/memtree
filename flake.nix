@@ -18,13 +18,8 @@
 			in {
 				packages = with pkgs; {
 					default = (callPackage ./package.nix {}).memtree;
-					devour-self = let
-						# Work around devour-flake#19
-						devour = (callPackage devour-flake {}).override (super: {
-							runtimeInputs = super.runtimeInputs ++ [ findutils ];
-						});
-					in writeShellScriptBin "devour-self" ''
-						exec ${lib.getExe devour} ${builtins.toString ./.} "$@"
+					devour-self = writeShellScriptBin "devour-self" ''
+						exec ${lib.getExe (callPackage devour-flake {})} ${builtins.toString ./.} "$@"
 					'';
 				};
 
