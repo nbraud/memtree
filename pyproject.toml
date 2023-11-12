@@ -42,3 +42,7 @@ select = [
 ]
 ignore = [ "E401" ]
 line-length = 80
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-wrap-aliases = true
