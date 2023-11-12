@@ -58,7 +58,7 @@ ansi_cyan = fixed_palette(("green1", "spring_green2", "spring_green1",
 
 
 def default_palette():
-    from rich.console import Console, ColorSystem
+    from rich.console import ColorSystem, Console
     cs = Console()._detect_color_system()
     if cs == ColorSystem.TRUECOLOR:
         return turbo

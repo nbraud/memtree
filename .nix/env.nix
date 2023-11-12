@@ -19,7 +19,10 @@ in
 
 lib.makeOverridable (args: with args;
 	let
-		inputs = with lib; flatten (attrVals groups dependencies ++ extras);
+		inputs = with lib; pipe dependencies [
+			(attrVals groups)
+			flatten
+		] ++ extras;
 	in
 	if text == null
 	then mkShell {

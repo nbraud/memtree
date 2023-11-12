@@ -1,5 +1,6 @@
 import pytest
-from hypothesis import given, note, strategies as st
+from hypothesis import given, note
+from hypothesis import strategies as st
 
 from memtree import MemoryAmount
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import re, string
+import re
+import string
 from pathlib import Path
 from platform import system
 from typing import Callable, Optional
