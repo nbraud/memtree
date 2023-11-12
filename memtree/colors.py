@@ -17,7 +17,7 @@ T = TypeVar('T')
 def clip(f: Callable[[float], T]) -> Callable[[float], T]:
     def g(x: float) -> T:
         if not 0 <= x <= 1:
-            warn(f"{x!r} is not a normalised value, clipping")
+            warn(f"{x!r} is not a normalised value, clipping", stacklevel=2)
             x = min(max(0, x), 1)
         return f(x)
 
