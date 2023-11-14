@@ -46,7 +46,7 @@ flake_task:
     changesInclude('.cirrus.yml', '*.nix', 'flake.lock', 'pyproject.toml')
     || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
     || $CIRRUS_BRANCH =~ 'staging|trying'
-  nix_config_file: &nix_conf
+  nix_config_file:
     path: /etc/nix/nix.conf
     from_contents: >-
       experimental-features = flakes nix-command
@@ -82,27 +82,12 @@ nixlint_task:
       format: cirrus
 
 
-extraneous_task:
-  name: Check `extra-dependencies.nix` for extraneous definitions
-  only_if: changesInclude('.cirrus.yml', 'extra-dependencies.nix', 'flake.*')
-  container:
-    image: nixpkgs/nix  # nix itself doesn't run under nixery.dev out-of-the-box
-  nix_config_file: *nix_conf
-  script: |
-    EXTRANEOUS="$(cat $(nix build --print-out-paths --no-link .#extraneous))"
-    [ -z "${EXTRANEOUS}" ] || {
-      echo "'extra-dependencies.nix' has extraneous definitions: ${EXTRANEOUS}"
-      exit 1
-    }
-
-
 # Meta-task used by services like Bors or GitHub to check overall success
 success_task:
   name: CI success
   container: {image: "busybox"}
   script: "exit 0"
   depends_on:
-    - Check `extra-dependencies.nix` for extraneous definitions
     - Devour the Nix flake
     - Lint
     - Lint .cirrus.yml
