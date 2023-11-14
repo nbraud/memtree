@@ -18,7 +18,7 @@ memtree = 'memtree.cli:main'
 
 
 [tool.poetry.dev-dependencies]
-bork = "^6"
+bork = "^7"
 flake8 = "^6"
 flake8-commas = "^2.0.0"
 flake8-bugbear = "^23"
