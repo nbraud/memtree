@@ -29,7 +29,7 @@ hypothesis = "^6.13.5"
 
 
 [tool.bork.aliases]
-lint = "ruff check ."
+lint = "ruff check . && ruff format --check --diff ."
 test = "python -m pytest -v"
 
 [tool.ruff]
@@ -40,7 +40,7 @@ select = [
        "I",                  # import order
        "N",                  # naming
 ]
-ignore = [ "E401" ]
+ignore = [ "E401", "COM812" ]
 line-length = 80
 
 [tool.ruff.lint.isort]

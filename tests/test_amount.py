@@ -9,12 +9,12 @@ from memtree import MemoryAmount
 
 
 def test_zero():
-    assert str(MemoryAmount(0)) == '0 B'
+    assert str(MemoryAmount(0)) == "0 B"
 
 
 @pytest.mark.parametrize(
     "multiplier, prefix",
-    ((1024 ** e, s) for (e, s) in enumerate(MemoryAmount.IEC_PREFIXES)),
+    ((1024**e, s) for (e, s) in enumerate(MemoryAmount.IEC_PREFIXES)),
 )
 @given(i=st.integers(1, 1023), f=st.floats(0, 1, exclude_max=True))
 def test_any_value(multiplier: int, prefix: str, i: int, f: float):

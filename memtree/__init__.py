@@ -39,18 +39,21 @@ class MemoryAmount(int):
 def demangle_name(name: str) -> str:
     def from_hex(m) -> str:
         # Possibly inefficient, but lazy  ^^
-        decoded = m[0].encode().decode('unicode_escape')
+        decoded = m[0].encode().decode("unicode_escape")
         if decoded in _PRINTABLE_NONSPACE:
             return decoded
 
         return m[0]  # No change
 
-    return _HEX_RE.sub(from_hex, _EXT_RE.sub('', name))
+    return _HEX_RE.sub(from_hex, _EXT_RE.sub("", name))
 
 
-def tree(p: Path = _DEFAULT_NODE, *,
-         color: Optional[Callable[[float], str]] = None,
-         demangle_name: Callable[[str], str] = demangle_name) -> Tree:
+def tree(
+    p: Path = _DEFAULT_NODE,
+    *,
+    color: Optional[Callable[[float], str]] = None,
+    demangle_name: Callable[[str], str] = demangle_name,
+) -> Tree:
     if color is None:
         color = default_palette()
 
@@ -83,8 +86,6 @@ def tree(p: Path = _DEFAULT_NODE, *,
         return t
 
     total_mem = mem(p) or sum(
-        mem(cgroup)
-        for cgroup in p.iterdir()
-        if cgroup.is_dir()
+        mem(cgroup) for cgroup in p.iterdir() if cgroup.is_dir()
     )
     return _tree(p)
