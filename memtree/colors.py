@@ -45,16 +45,16 @@ def turbo(x: float) -> str:
     return f"rgb({r},{g},{b})"
 
 
-def fixed_palette(p: Sequence[T]) -> Callable[[float], T]:
+def fixed_palette(*p: Sequence[T]) -> Callable[[float], T]:
     n = len(p)
     return clip(lambda x: p[min(n - 1, int(n * x))])
 
 
-sixteen = fixed_palette(("blue", "cyan", "green", "yellow", "red", "magenta"))
+sixteen = fixed_palette("blue", "cyan", "green", "yellow", "red", "magenta")
 
 
-ansi_cyan = fixed_palette(("green1", "spring_green2", "spring_green1",
-                           "medium_spring_green", "cyan2", "cyan1"))
+ansi_cyan = fixed_palette("green1", "spring_green2", "spring_green1",
+                          "medium_spring_green", "cyan2", "cyan1")
 
 
 def default_palette():
