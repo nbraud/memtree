@@ -6,7 +6,7 @@
 let
 	inherit (python3Packages) buildPythonApplication;
 
-	pyproject = with builtins; fromTOML (readFile ./pyproject.toml);
+	pyproject = with builtins; fromTOML (readFile ../pyproject.toml);
 	inherit (pyproject.tool) poetry;
 
 	extraDependencies = callPackage ./extra-dependencies.nix {};
@@ -55,11 +55,11 @@ rec {
 
 		src = with lib.fileset;
 			toSource {
-				root = ./.;
+				root = ../.;
 				fileset = unions [
-					./pyproject.toml
-					./memtree
-					./tests
+					../pyproject.toml
+					../memtree
+					../tests
 				];
 			};
 

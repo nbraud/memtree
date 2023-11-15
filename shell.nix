@@ -7,7 +7,7 @@ let
 in
 { pkgs ? import nixpkgs { }}:
 
-(import ./ci.nix { inherit pkgs; }).override (self: {
+(import ./.nix/ci.nix { inherit pkgs; }).override (self: {
 	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
 		deadnix
 		python3Packages.ipython

@@ -20,13 +20,13 @@
 			let pkgs = import nixpkgs { inherit system; };
 			in {
 				packages = with pkgs; {
-					default = (callPackage ./package.nix {}).memtree;
+					default = (callPackage ./.nix/package.nix {}).memtree;
 					devour-self = writeShellScriptBin "devour-self" ''
 						exec ${lib.getExe (callPackage devour-flake {})} "$PWD" "$@"
 					'';
 				};
 
-				devShells.ci      = import ./ci.nix    { inherit pkgs; };
-				devShells.default = import ./shell.nix { inherit pkgs; };
+				devShells.ci      = import ./.nix/ci.nix    { inherit pkgs; };
+				devShells.default = import ./shell.nix      { inherit pkgs; };
 			});
 }
