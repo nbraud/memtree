@@ -36,11 +36,16 @@ let
 				drv
 			else
 				throw "Package '${name}' at version '${drv.version}' does not meet spec '${spec}'");
+
+	dependenciesByGroup = with lib; mapAttrs
+		(_: x: fromPoetryDeps x.dependencies)
+		poetry.group;
 in
 
 rec {
-	dependencies = fromPoetryDeps (builtins.removeAttrs poetry.dependencies ["python"]);
-	dev-dependencies = fromPoetryDeps poetry.dev-dependencies;
+	dependencies = dependenciesByGroup // {
+		run = fromPoetryDeps (builtins.removeAttrs poetry.dependencies ["python"]);
+	};
 
 	memtree = buildPythonApplication {
 		pname = poetry.name;
@@ -51,7 +56,7 @@ rec {
 			poetry-core
 		];
 
-		propagatedBuildInputs = dependencies;
+		propagatedBuildInputs = dependencies.run;
 
 		src = with lib.fileset;
 			toSource {
