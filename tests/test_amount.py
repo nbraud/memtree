@@ -21,7 +21,7 @@ def test_zero():
 def test_any_value(multiplier: int, prefix: str, i: int, f: float):
     n = MemoryAmount(multiplier * i + int(f * multiplier))
     note("n = {n!r} B")
-    assert str(n) == f"{i + 1 if f >= 0.5 and multiplier > 1 else i} {prefix}B"
+    assert str(n) == f"{i + 1 if f >= 1/2 and multiplier > 1 else i} {prefix}B"
 
 
 MAX_PREFIX = MemoryAmount.IEC_PREFIXES[-1]

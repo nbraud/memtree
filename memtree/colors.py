@@ -14,7 +14,7 @@ def turbo_data() -> Sequence[Vector]:
     def vector(v: Any) -> Vector:  # noqa: ANN401
         if not isinstance(v, Sequence):
             raise TypeError("Expected a sequence", v)
-        if not len(v) == 3:
+        if not len(v) == len(Vector.__args__):
             raise ValueError("Expected a 3-elements sequence")
         x, y, z = v
         if not all(isinstance(t, float) for t in (x, y, z)):
