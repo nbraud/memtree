@@ -43,6 +43,7 @@ select = [
        "N",                  # naming
        "PT",                 # pytest-specific rules
        "RET",                # control flow around `return`
+       "SIM",                # simplification rules
        "SLF",                # don't poke around other classes' privates
        "UP",                 # pyupgrade: warn on obsolete syntax
 ]
