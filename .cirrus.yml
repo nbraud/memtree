@@ -7,6 +7,7 @@ use_compute_credits: |
   $CIRRUS_BRANCH =~ 'staging|trying'
 
 
+# TODO: Convert ruff's output to GitHub annotations
 Lint_task: &task
   env:
     CACHIX_CACHE_NAME: memtree

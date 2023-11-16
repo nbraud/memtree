@@ -21,12 +21,7 @@ rich = "^13"
 bork = "^7"
 
 [tool.poetry.group.lint.dependencies]
-flake8 = "^6"
-flake8-commas = "^2.0.0"
-flake8-bugbear = "^23"
-flake8-import-order = "^0.18.1"
-flake8-pyproject = "^1.2.3"
-pep8-naming = "^0.13"
+ruff = "^0.1.3"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7"
@@ -34,13 +29,20 @@ hypothesis = "^6.13.5"
 
 
 [tool.bork.aliases]
-lint = "python -m flake8"
+lint = "ruff check . && ruff format --check --diff ."
 test = "python -m pytest -v"
 
-[tool.flake8]
-select = "C,E,F,I,N,W,B,B9"
-ignore = "E401"
-max-line-length = 80
+[tool.ruff]
+select = [
+       "E", "W", "F", "C90", # equivalent to flake8 (pycodestyle, pyflakes, mccabe)
+       "B", "B9",            # bugbear
+       "COM",                # commas
+       "I",                  # import order
+       "N",                  # naming
+]
+ignore = [ "E401", "COM812" ]
+line-length = 80
 
-import-order-style = "smarkets"
-application-import-names = "memtree"
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-wrap-aliases = true

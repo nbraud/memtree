@@ -1,6 +1,6 @@
 { lib
-, callPackage
 , python3Packages
+, ruff
 }:
 
 let
@@ -8,8 +8,6 @@ let
 
 	pyproject = with builtins; fromTOML (readFile ../pyproject.toml);
 	inherit (pyproject.tool) poetry;
-
-	extraDependencies = callPackage ./extra-dependencies.nix {};
 
 	inherit (lib) hasPrefix mapAttrsToList substring;
 
@@ -31,7 +29,7 @@ let
 
 	fromPoetryDeps = mapAttrsToList
 		(name: spec:
-			let drv = (extraDependencies // python3Packages).${name}; in
+			let drv = python3Packages.${name} or (assert name == "ruff"; ruff); in
 			if versionCheck drv.version spec then
 				drv
 			else
