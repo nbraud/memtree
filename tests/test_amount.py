@@ -14,7 +14,7 @@ def test_zero():
 
 
 @pytest.mark.parametrize(
-    "multiplier, prefix",
+    ("multiplier", "prefix"),
     ((1024**e, s) for (e, s) in enumerate(MemoryAmount.IEC_PREFIXES)),
 )
 @given(i=st.integers(1, 1023), f=st.floats(0, 1, exclude_max=True))

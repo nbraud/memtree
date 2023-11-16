@@ -41,6 +41,7 @@ select = [
        "COM",                # commas
        "I",                  # import order
        "N",                  # naming
+       "PT",                 # pytest-specific rules
        "UP",                 # pyupgrade: warn on obsolete syntax
 ]
 ignore = [
