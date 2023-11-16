@@ -39,6 +39,7 @@ select = [
        "COM",                # commas
        "I",                  # import order
        "N",                  # naming
+       "UP",                 # pyupgrade: warn on obsolete syntax
 ]
 ignore = [ "E401", "COM812" ]
 line-length = 80
