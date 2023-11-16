@@ -43,6 +43,7 @@ select = [
        "I",                  # import order
        "N",                  # naming
        "PT",                 # pytest-specific rules
+       "PTH",                # use pathlib, you philistine
        "RET",                # control flow around `return`
        "SIM",                # simplification rules
        "SLF",                # don't poke around other classes' privates
