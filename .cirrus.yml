@@ -15,12 +15,19 @@ Lint_task: &task
       0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]
   container:
     image: nixpkgs/cachix
+  nix_config_file:
+    path: /etc/nix/nix.conf
+    from_contents: >-
+      experimental-features = flakes nix-command
   config_script:
     - cachix use "$CACHIX_CACHE_NAME"
-  build_script:
-    - nix-build --pure ci.nix
-  script:
-    - nix-shell --pure ci.nix --run 'bork run lint'
+    - >
+      [ -z "$FLAKE_OUTPUT" ]
+      || FLAKE_OUTPUT=".#$(tr 'A-Z' 'a-z' <<< $CIRRUS_TASK_NAME)"
+  build_script: >
+    nix build $FLAKE_OUTPUT
+  script: >
+    nix run   $FLAKE_OUTPUT
   cache_update_script:
     - |
       [ -z "$CACHIX_AUTH_TOKEN" ] || {
@@ -29,14 +36,11 @@ Lint_task: &task
 
 Test_task:
   <<: *task
-  script:
-    - nix-shell --pure ci.nix --run 'bork run test'
 
 Integration_task:
   <<: *task
-  script:
-    - nix-shell --pure ci.nix --run 'python -m memtree'
-
+  env:
+    FLAKE_OUTPUT: .
 
 flake_task:
   name: Devour the Nix flake
@@ -46,16 +50,13 @@ flake_task:
     changesInclude('.cirrus.yml', '*.nix', 'flake.lock', 'pyproject.toml')
     || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
     || $CIRRUS_BRANCH =~ 'staging|trying'
-  nix_config_file:
-    path: /etc/nix/nix.conf
-    from_contents: >-
-      experimental-features = flakes nix-command
   <<: *task
-  build_script: []
-  script: "nix run .#devour-self | tee result"
+  env:
+    FLAKE_OUTPUT: ".#devour-self"
+  script: nix run .#devour-self | tee outputs
   cache_update_script: >
-    [ -z "$CACHIX_AUTH_TOKEN" ] ||
-    cachix push "$CACHIX_CACHE_NAME" < ./result
+    [ -z "$CACHIX_AUTH_TOKEN" ]
+    || cachix push "$CACHIX_CACHE_NAME" < ./outputs
 
 
 # Linting the CI & Nix configuration

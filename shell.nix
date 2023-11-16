@@ -7,11 +7,12 @@ let
 in
 { pkgs ? import nixpkgs { }}:
 
-(import ./ci.nix { inherit pkgs; }).override (self: {
-	nativeBuildInputs = with pkgs; self.nativeBuildInputs ++ [
+import ./.nix/env.nix { inherit pkgs; } {
+	groups = [ "dev" "lint" "run" "test" ];
+	extras = with pkgs; [
 		deadnix
 		python3Packages.ipython
 		poetry
 		yamllint
 	];
-})
+}
