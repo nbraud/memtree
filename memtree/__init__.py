@@ -8,7 +8,7 @@ from typing import Callable, Optional
 
 from rich.tree import Tree
 
-from .colors import default_palette
+from .colors import Palette, default_palette
 
 assert system() == "Linux", f"{__name__} only works on Linux."
 
@@ -22,7 +22,7 @@ _DEFAULT_NODE = Path("/sys/fs/cgroup/")
 class MemoryAmount(int):
     IEC_PREFIXES = ("", "ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi")
 
-    def __str__(self):
+    def __str__(self) -> str:
         i = min(len(self.IEC_PREFIXES) - 1, (self.bit_length() - 1) // 10)
         if i < 1:
             return f"{int(self)} B"
@@ -37,7 +37,7 @@ class MemoryAmount(int):
 
 
 def demangle_name(name: str) -> str:
-    def from_hex(m) -> str:
+    def from_hex(m: re.Match[str]) -> str:
         # Possibly inefficient, but lazy  ^^
         decoded = m[0].encode().decode("unicode_escape")
         if decoded in _PRINTABLE_NONSPACE:
@@ -51,11 +51,10 @@ def demangle_name(name: str) -> str:
 def tree(
     p: Path = _DEFAULT_NODE,
     *,
-    color: Optional[Callable[[float], str]] = None,
+    color: Optional[Palette] = None,
     demangle_name: Callable[[str], str] = demangle_name,
 ) -> Tree:
-    if color is None:
-        color = default_palette()
+    palette = color or default_palette()
 
     def mem(q: Path) -> Optional[MemoryAmount]:
         try:
@@ -65,6 +64,7 @@ def tree(
 
     def _tree(p: Path) -> Tree:
         m = mem(p)
+
         if m is None:
             t = Tree(f"{demangle_name(p.name)}")
         elif not total_mem:
@@ -72,15 +72,14 @@ def tree(
         else:
             t = Tree(
                 f"{demangle_name(p.name)}: {m} ({100 * m/total_mem :.0f}%)",
-                style=color(m / total_mem),
+                style=palette(m / total_mem),
             )
 
-        children = sorted(
+        for q in sorted(
             (q for q in p.iterdir() if q.is_dir() and mem(q) != 0),
             key=mem,
             reverse=True,
-        )
-        for q in children:
+        ):
             t.add(_tree(q))
 
         return t

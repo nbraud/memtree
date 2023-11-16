@@ -3,7 +3,7 @@ from rich import print
 from . import tree
 
 
-def main():
+def main() -> None:
     print(tree())
 
 

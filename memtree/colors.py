@@ -1,17 +1,28 @@
 import json
 from functools import cache
 from importlib import resources
-from typing import Callable, Sequence, Tuple, TypeVar
+from typing import Any, Callable, Sequence, Tuple, TypeVar
 from warnings import warn
+
+T = TypeVar("T", str, Sequence[str])
+Palette = Callable[[float], str]
+Vector = Tuple[float, float, float]
 
 
 @cache
-def turbo_data() -> Sequence[Tuple[float, float, float]]:
+def turbo_data() -> Sequence[Vector]:
+    def vector(v: Any) -> Vector:  # noqa: ANN401
+        if not isinstance(v, Sequence):
+            raise TypeError("Expected a sequence", v)
+        if not len(v) == len(Vector.__args__):
+            raise ValueError("Expected a 3-elements sequence")
+        x, y, z = v
+        if not all(isinstance(t, float) for t in (x, y, z)):
+            raise TypeError("Expected floats")
+        return (x, y, z)
+
     with resources.files(__package__).joinpath("data/turbo.json").open() as f:
-        return tuple(map(tuple, json.load(f)))
-
-
-T = TypeVar("T")
+        return tuple(vector(v) for v in json.load(f))
 
 
 def clip(f: Callable[[float], T]) -> Callable[[float], T]:
@@ -43,11 +54,11 @@ def turbo(x: float) -> str:
         colormap[a][1] + (colormap[b][1] - colormap[a][1]) * f,
         colormap[a][2] + (colormap[b][2] - colormap[a][2]) * f,
     )
-    r, g, b = tuple(map(lambda y: int(255 * y), c))
+    r, g, b = tuple(int(255 * y) for y in c)
     return f"rgb({r},{g},{b})"
 
 
-def fixed_palette(*p: Sequence[T]) -> Callable[[float], T]:
+def fixed_palette(*p: str) -> Palette:
     n = len(p)
     return clip(lambda x: p[min(n - 1, int(n * x))])
 
@@ -65,13 +76,13 @@ ansi_cyan = fixed_palette(
 )
 
 
-def default_palette():
+def default_palette() -> Palette:
     from rich.console import ColorSystem, Console
 
-    cs = Console()._detect_color_system()
-    if cs == ColorSystem.TRUECOLOR:
-        return turbo
-    elif cs == ColorSystem.STANDARD:
-        return ansi_cyan
-    else:
-        return sixteen
+    match Console().color_system:
+        case ColorSystem.TRUECOLOR:
+            return turbo
+        case ColorSystem.STANDARD:
+            return ansi_cyan
+        case _:
+            return sixteen

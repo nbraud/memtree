@@ -8,19 +8,20 @@ from hypothesis import (
 from memtree import MemoryAmount
 
 
+# ruff: noqa: ANN201
 def test_zero():
     assert str(MemoryAmount(0)) == "0 B"
 
 
 @pytest.mark.parametrize(
-    "multiplier, prefix",
+    ("multiplier", "prefix"),
     ((1024**e, s) for (e, s) in enumerate(MemoryAmount.IEC_PREFIXES)),
 )
 @given(i=st.integers(1, 1023), f=st.floats(0, 1, exclude_max=True))
 def test_any_value(multiplier: int, prefix: str, i: int, f: float):
     n = MemoryAmount(multiplier * i + int(f * multiplier))
     note("n = {n!r} B")
-    assert str(n) == f"{i + 1 if f >= 0.5 and multiplier > 1 else i} {prefix}B"
+    assert str(n) == f"{i + 1 if f >= 1/2 and multiplier > 1 else i} {prefix}B"
 
 
 MAX_PREFIX = MemoryAmount.IEC_PREFIXES[-1]

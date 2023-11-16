@@ -13,7 +13,7 @@ license = "ISC"
 memtree = 'memtree.cli:main'
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 rich = "^13"
 
 
@@ -34,13 +34,31 @@ test = "python -m pytest -v"
 
 [tool.ruff]
 select = [
+       "RUF",                # ruff's own rules
        "E", "W", "F", "C90", # equivalent to flake8 (pycodestyle, pyflakes, mccabe)
+       "ANN",                # require function annotations
+       "ARG",                # unused arguments
        "B", "B9",            # bugbear
+       "C4",                 # idiomatic style with comprehensions
        "COM",                # commas
+       "ERA",                # remove commented-out code
        "I",                  # import order
        "N",                  # naming
+       "PERF",               # performance-related rules
+       "PGH",                # misc. rules supplanting pygrep-hooks
+       "PT",                 # pytest-specific rules
+       "PTH",                # use pathlib, you philistine
+       "PL",                 # pylint
+       "RET",                # control flow around `return`
+       "SIM",                # simplification rules
+       "SLF",                # don't poke around other classes' privates
+       "UP",                 # pyupgrade: warn on obsolete syntax
 ]
-ignore = [ "E401", "COM812" ]
+ignore = [
+       "ANN101", "ANN102",   # `self` and `cls` have implicit type annotations
+       "E401",               # allow multiple imports on one line
+       "COM812",             # incompatible with `ruff format`
+]
 line-length = 80
 
 [tool.ruff.lint.isort]
