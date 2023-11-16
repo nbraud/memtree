@@ -34,27 +34,27 @@ test = "python -m pytest -v"
 
 [tool.ruff]
 select = [
-       "RUF",                # ruff's own rules
-       "E", "W",             # pycodestyle
-       "F",                  # pyflakes
-       "ANN",                # require function annotations
-       "ARG",                # unused arguments
-       "B", "B9",            # bugbear
-       "C4",                 # idiomatic style with comprehensions
-       "C90",                # code complexity rules (mccabe)
-       "COM",                # commas
-       "ERA",                # remove commented-out code
-       "I",                  # import order
-       "N",                  # naming
-       "PERF",               # performance-related rules
-       "PGH",                # misc. rules supplanting pygrep-hooks
-       "PT",                 # pytest-specific rules
-       "PTH",                # use pathlib, you philistine
-       "PL",                 # pylint
-       "RET",                # control flow around `return`
-       "SIM",                # simplification rules
-       "SLF",                # don't poke around other classes' privates
-       "UP",                 # pyupgrade: warn on obsolete syntax
+       "ANN",     # require function annotations
+       "ARG",     # unused arguments
+       "B", "B9", # bugbear
+       "C4",      # idiomatic style with comprehensions
+       "C90",     # code complexity rules (mccabe)
+       "COM",     # commas
+       "E", "W",  # pycodestyle
+       "ERA",     # remove commented-out code
+       "F",       # pyflakes
+       "I",       # import order
+       "N",       # naming
+       "PERF",    # performance-related rules
+       "PGH",     # misc. rules supplanting pygrep-hooks
+       "PL",      # pylint
+       "PT",      # pytest-specific rules
+       "PTH",     # use pathlib, you philistine
+       "RET",     # control flow around `return`
+       "RUF",     # ruff's own rules
+       "SIM",     # simplification rules
+       "SLF",     # don't poke around other classes' privates
+       "UP",      # pyupgrade: warn on obsolete syntax
 ]
 ignore = [
        "ANN101", "ANN102",   # `self` and `cls` have implicit type annotations
