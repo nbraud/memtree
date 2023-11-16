@@ -34,6 +34,7 @@ test = "python -m pytest -v"
 
 [tool.ruff]
 select = [
+       "RUF",                # ruff's own rules
        "E", "W", "F", "C90", # equivalent to flake8 (pycodestyle, pyflakes, mccabe)
        "ANN",                # require function annotations
        "ARG",                # unused arguments
