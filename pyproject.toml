@@ -37,6 +37,7 @@ select = [
        "E", "W", "F", "C90", # equivalent to flake8 (pycodestyle, pyflakes, mccabe)
        "ANN",                # require function annotations
        "B", "B9",            # bugbear
+       "C4",                 # idiomatic style with comprehensions
        "COM",                # commas
        "I",                  # import order
        "N",                  # naming
