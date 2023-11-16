@@ -43,6 +43,7 @@ select = [
        "ERA",                # remove commented-out code
        "I",                  # import order
        "N",                  # naming
+       "PERF",               # performance-related rules
        "PGH",                # misc. rules supplanting pygrep-hooks
        "PT",                 # pytest-specific rules
        "PTH",                # use pathlib, you philistine
