@@ -21,11 +21,12 @@
 				pkgs = import nixpkgs { inherit system; };
 				inherit (pkgs) lib;
 
-				env = import ./.nix/env.nix { inherit pkgs; };
+				inherit (pkgs.callPackage ./.nix/package.nix {}) dependencies memtree;
 				bork = (lib.importTOML ./pyproject.toml).tool.bork;
+				env = import ./.nix/env.nix { inherit pkgs; };
 			in rec {
 				packages = with pkgs; {
-					default = (callPackage ./.nix/package.nix {}).memtree;
+					default = memtree;
 
 					# TODO: Convert into “apps”
 					devour-self = writeShellScriptBin "devour-self" ''
@@ -46,7 +47,16 @@
 				devShells = lib.genAttrs [ "lint" "test" ] (name:
 					packages.${name}.override { text = null; }
 				) // {
-					default = import ./shell.nix { inherit pkgs; };
+					default = env {
+						groups = lib.attrNames dependencies;  # All dependencies groups
+						extras = with pkgs; [
+							deadnix
+							python3
+							python3Packages.ipython
+							poetry
+							yamllint
+						];
+          };
 				};
 			});
 }
