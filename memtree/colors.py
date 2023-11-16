@@ -12,6 +12,7 @@ def turbo_data() -> Sequence[Tuple[float, float, float]]:
 
 
 T = TypeVar("T")
+Palette = Callable[[float], str]
 
 
 def clip(f: Callable[[float], T]) -> Callable[[float], T]:
@@ -47,7 +48,7 @@ def turbo(x: float) -> str:
     return f"rgb({r},{g},{b})"
 
 
-def fixed_palette(*p: Sequence[T]) -> Callable[[float], T]:
+def fixed_palette(*p: str) -> Palette:
     n = len(p)
     return clip(lambda x: p[min(n - 1, int(n * x))])
 
@@ -65,7 +66,7 @@ ansi_cyan = fixed_palette(
 )
 
 
-def default_palette():
+def default_palette() -> Palette:
     from rich.console import ColorSystem, Console
 
     cs = Console()._detect_color_system()

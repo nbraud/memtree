@@ -22,7 +22,7 @@ _DEFAULT_NODE = Path("/sys/fs/cgroup/")
 class MemoryAmount(int):
     IEC_PREFIXES = ("", "ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi")
 
-    def __str__(self):
+    def __str__(self) -> str:
         i = min(len(self.IEC_PREFIXES) - 1, (self.bit_length() - 1) // 10)
         if i < 1:
             return f"{int(self)} B"
@@ -37,7 +37,7 @@ class MemoryAmount(int):
 
 
 def demangle_name(name: str) -> str:
-    def from_hex(m) -> str:
+    def from_hex(m: re.Match[str]) -> str:
         # Possibly inefficient, but lazy  ^^
         decoded = m[0].encode().decode("unicode_escape")
         if decoded in _PRINTABLE_NONSPACE:

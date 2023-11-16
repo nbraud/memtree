@@ -8,6 +8,7 @@ from hypothesis import (
 from memtree import MemoryAmount
 
 
+# ruff: noqa: ANN201
 def test_zero():
     assert str(MemoryAmount(0)) == "0 B"
 
