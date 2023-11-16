@@ -79,10 +79,10 @@ ansi_cyan = fixed_palette(
 def default_palette() -> Palette:
     from rich.console import ColorSystem, Console
 
-    cs = Console()._detect_color_system()
-    if cs == ColorSystem.TRUECOLOR:
-        return turbo
-    elif cs == ColorSystem.STANDARD:
-        return ansi_cyan
-    else:
-        return sixteen
+    match Console()._detect_color_system():
+        case ColorSystem.TRUECOLOR:
+            return turbo
+        case ColorSystem.STANDARD:
+            return ansi_cyan
+        case _:
+            return sixteen
