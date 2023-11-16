@@ -35,11 +35,13 @@ test = "python -m pytest -v"
 [tool.ruff]
 select = [
        "RUF",                # ruff's own rules
-       "E", "W", "F", "C90", # equivalent to flake8 (pycodestyle, pyflakes, mccabe)
+       "E", "W",             # pycodestyle
+       "F",                  # pyflakes
        "ANN",                # require function annotations
        "ARG",                # unused arguments
        "B", "B9",            # bugbear
        "C4",                 # idiomatic style with comprehensions
+       "C90",                # code complexity rules (mccabe)
        "COM",                # commas
        "ERA",                # remove commented-out code
        "I",                  # import order
