@@ -4,15 +4,14 @@ from importlib import resources
 from typing import Any, Callable, Sequence, Tuple, TypeVar
 from warnings import warn
 
-
-T = TypeVar('T', str, Sequence[str])
+T = TypeVar("T", str, Sequence[str])
 Palette = Callable[[float], str]
 Vector = Tuple[float, float, float]
 
 
 @cache
 def turbo_data() -> Sequence[Vector]:
-    def vector(v: Any) -> Vector:
+    def vector(v: Any) -> Vector:  # noqa: ANN401
         if not isinstance(v, Sequence):
             raise TypeError("Expected a sequence", v)
         if not len(v) == 3:
@@ -55,7 +54,7 @@ def turbo(x: float) -> str:
         colormap[a][1] + (colormap[b][1] - colormap[a][1]) * f,
         colormap[a][2] + (colormap[b][2] - colormap[a][2]) * f,
     )
-    r, g, b = tuple(map(lambda y: int(255 * y), c))
+    r, g, b = tuple(int(255 * y) for y in c)
     return f"rgb({r},{g},{b})"
 
 
