@@ -7,42 +7,64 @@ use_compute_credits: |
   $CIRRUS_BRANCH =~ 'staging|trying'
 
 
-# TODO: Convert ruff's output to GitHub annotations
-Lint_task: &task
+Test_task: &task
   env:
     CACHIX_CACHE_NAME: memtree
     CACHIX_AUTH_TOKEN: >
       ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb
       0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]
+    FLAKE_OUTPUT: .#test
   container:
     image: nixpkgs/cachix
   nix_config_file:
     path: /etc/nix/nix.conf
-    from_contents: >-
+    from_contents: |
       experimental-features = flakes nix-command
-  config_script:
-    - cachix use "$CACHIX_CACHE_NAME"
-    - >
-      [ -z "$FLAKE_OUTPUT" ]
-      || FLAKE_OUTPUT=".#$(tr 'A-Z' 'a-z' <<< $CIRRUS_TASK_NAME)"
-  build_script: >
-    nix build $FLAKE_OUTPUT
-  script: >
-    nix run   $FLAKE_OUTPUT
-  cache_update_script:
-    - |
-      [ -z "$CACHIX_AUTH_TOKEN" ] || {
-        realpath ./result | cachix push "$CACHIX_CACHE_NAME"
-      }
-
-Test_task:
-  <<: *task
+  config_script: cachix use "$CACHIX_CACHE_NAME"
+  build_script: nix build $FLAKE_OUTPUT
+  script: nix run $FLAKE_OUTPUT
+  cache_update_script: |
+    [ -z "$CACHIX_AUTH_TOKEN" ] || {
+      realpath ./result | cachix push "$CACHIX_CACHE_NAME"
+    }
 
 Integration_task:
   <<: *task
   env:
     FLAKE_OUTPUT: .
 
+
+# TODO: Convert ruff's output to GitHub annotations
+ruff_task:
+  name: Lint the Python source
+  <<: *task
+  env:
+    FLAKE_OUTPUT: .#lint-py
+
+
+# Linting the CI & Nix configuration
+#  using non-pinned versions through nixery.dev is “probably fine” here
+yaml_task:
+  name: Lint .cirrus.yml
+  only_if: changesInclude('.cirrus.yml', 'flake.lock', 'flake.nix')
+  <<: *task
+  env:
+    FLAKE_OUTPUT: .#lint-yaml
+
+nixlint_task:
+  name: Lint the Nix code
+  only_if: changesInclude('.cirrus.yml', 'flake.lock', '**/*.nix')
+  <<: *task
+  env:
+    FLAKE_OUTPUT: .#lint-nix
+  always:
+    artifacts:
+      path: "*.json"
+      type: text/json
+      format: cirrus
+
+
+# Testing the packaging
 flake_task:
   name: Devour the Nix flake
   # Incorrect in principle, as the build depends on memtree's source but it's
@@ -53,35 +75,11 @@ flake_task:
     || $CIRRUS_BRANCH =~ 'staging|trying'
   <<: *task
   env:
-    FLAKE_OUTPUT: ".#devour-self"
+    FLAKE_OUTPUT: .#devour-self
   script: nix run .#devour-self | tee outputs
   cache_update_script: >
     [ -z "$CACHIX_AUTH_TOKEN" ]
     || cachix push "$CACHIX_CACHE_NAME" < ./outputs
-
-
-# Linting the CI & Nix configuration
-#  using non-pinned versions through nixery.dev is “probably fine” here
-yaml_task:
-  name: Lint .cirrus.yml
-  container:
-    image: nixery.dev/shell/yamllint
-  script: yamllint .cirrus.yml
-  only_if: changesInclude('.cirrus.yml')
-
-nixlint_task:
-  name: Lint the Nix code
-  only_if: changesInclude('.cirrus.yml', 'flake.lock', '*.nix')
-  container:
-    image: nixery.dev/shell/deadnix/jq
-  deadcode_script: >-
-    deadnix -h --fail --output-format json |
-    jq -cf ./.ci/deadnix.jq > deadnix.json
-  always:
-    artifacts:
-      path: "*.json"
-      type: text/json
-      format: cirrus
 
 
 # Meta-task used by services like Bors or GitHub to check overall success
@@ -91,7 +89,7 @@ success_task:
   script: "exit 0"
   depends_on:
     - Devour the Nix flake
-    - Lint
+    - Lint the Python source
     - Lint .cirrus.yml
     - Lint the Nix code
     - Test

@@ -1,6 +1,5 @@
 { lib
 , python3Packages
-, ruff
 }:
 
 let
@@ -27,22 +26,23 @@ let
 		else
 			throw "Unimplemented comparison operator in `${versionSpec}`";
 
-	fromPoetryDeps = mapAttrsToList
-		(name: spec:
-			let drv = python3Packages.${name} or (assert name == "ruff"; ruff); in
-			if versionCheck drv.version spec then
-				drv
-			else
-				throw "Package '${name}' at version '${drv.version}' does not meet spec '${spec}'");
+	fromPoetryDeps = pyPkgs: mapAttrsToList (name: spec:
+		let drv = pyPkgs.${name}; in
+		if name == "ruff" then
+			null
+		else if versionCheck drv.version spec then
+			drv
+		else
+			throw "Package '${name}' at version '${drv.version}' does not meet spec '${spec}'");
 
 	dependenciesByGroup = with lib; mapAttrs
-		(_: x: fromPoetryDeps x.dependencies)
+		(_: x: pyPkgs: fromPoetryDeps pyPkgs x.dependencies)
 		poetry.group;
 in
 
 rec {
 	dependencies = dependenciesByGroup // {
-		run = fromPoetryDeps (builtins.removeAttrs poetry.dependencies ["python"]);
+		run = pyPkgs: fromPoetryDeps pyPkgs (builtins.removeAttrs poetry.dependencies ["python"]);
 	};
 
 	memtree = buildPythonApplication {
@@ -54,7 +54,7 @@ rec {
 			poetry-core
 		];
 
-		propagatedBuildInputs = dependencies.run;
+		propagatedBuildInputs = dependencies.run python3Packages;
 
 		src = with lib.fileset;
 			toSource {

@@ -1,4 +1,5 @@
 /.direnv
+/*.json
 /dist
 /.hypothesis/
 /result

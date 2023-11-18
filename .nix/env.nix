@@ -7,7 +7,7 @@ let
 in
 
 { pkgs ? import nixpkgs { } }:
-{ groups
+{ groups ? []
 , extras ? []
 , text ? null
 }:
@@ -19,10 +19,10 @@ in
 
 lib.makeOverridable (args: with args;
 	let
-		inputs = with lib; pipe dependencies [
-			(attrVals groups)
-			flatten
-		] ++ extras;
+		union = groups: pyPkgs: lib.concatMap (f: f pyPkgs) groups;
+		inputs =
+			lib.optional (groups != []) (pkgs.python3.withPackages (union (lib.attrVals groups dependencies)))
+			++ extras;
 	in
 	if text == null
 	then mkShell {
