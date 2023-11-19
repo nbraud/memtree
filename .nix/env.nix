@@ -21,9 +21,11 @@ with lib;
 makeOverridable (args: with args;
 	let
 		union = groups: pyPkgs: concatMap (f: f pyPkgs) groups;
-		inputs =
-			optional (groups != []) (python3.withPackages (union (attrVals groups dependencies)))
-			++ extras;
+		inputs = optional (groups != []) (pipe dependencies [
+			(attrVals groups)
+			union
+			python3.withPackages
+		]) ++ extras;
 	in
 	if text == null
 	then mkShell {
