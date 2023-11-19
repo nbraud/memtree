@@ -32,6 +32,15 @@ hypothesis = "^6.13.5"
 lint = "ruff check . && ruff format --check --diff ."
 test = "python -m pytest -v"
 
+[tool.bork.zipapp]
+enabled = true
+main = "memtree.cli:main"
+
+# required for bork zippapp support, due to duckinator/bork#339
+[project]
+name = "memtree"
+
+
 [tool.ruff]
 select = [
        "ANN",     # require function annotations
