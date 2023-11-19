@@ -13,15 +13,16 @@ in
 }:
 
 let
-	inherit (pkgs) lib mkShell writeShellApplication;
+	inherit (pkgs) lib mkShell writeShellApplication python3;
 	inherit (pkgs.callPackage ./package.nix { }) dependencies;
 in
 
-lib.makeOverridable (args: with args;
+with lib;
+makeOverridable (args: with args;
 	let
-		union = groups: pyPkgs: lib.concatMap (f: f pyPkgs) groups;
+		union = groups: pyPkgs: concatMap (f: f pyPkgs) groups;
 		inputs =
-			lib.optional (groups != []) (pkgs.python3.withPackages (union (lib.attrVals groups dependencies)))
+			optional (groups != []) (python3.withPackages (union (attrVals groups dependencies)))
 			++ extras;
 	in
 	if text == null
