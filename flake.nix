@@ -18,7 +18,6 @@
 				inherit (pkgs) lib;
 
 				inherit (pkgs.callPackage ./.nix/package.nix {}) dependencies memtree;
-				bork = (lib.importTOML ./pyproject.toml).tool.bork;
 				env = import ./.nix/env.nix { inherit pkgs; };
 			in rec {
 				checks.devour = with lib; let
@@ -28,40 +27,22 @@
 
 				packages = with pkgs; {
 					default = memtree;
-
-					# TODO: Convert into “apps”
-					test = env {
-						groups = [ "run" "test" ];
-						text   = "exec ${bork.aliases.test}";
-					};
-					lint-py = env {
-						extras = [ ruff ];
-						text   = "exec ${bork.aliases.lint}";
-					};
-					lint-nix = env {
-						extras = [ deadnix jq ];
-						text = ''
-							deadnix -h --output-format json | \
-								jq -cf ./.ci/deadnix.jq > deadnix.json
-
-							# If output was produced, rerun to get a human-readable version too
-							! [ -s ./deadnix.json ] || \
-								deadnix -h --fail
-						'';
-					};
-					lint-yaml = env {
-						extras = [ yamllint ];
-						text = ''
-							yamllint ./.cirrus.yml
-						'';
-					};
 				};
 
-				devShells = with lib; mapAttrsRecursiveCond
-					(x: !(isDerivation x))
-					(_: x: if isDerivation x then x.override { text = null; } else x)
-					{ inherit (packages) lint-py lint-nix lint-yaml test; }
-				// {
+				ci = with lib; pipe ./.ci/tasks.json [
+					importJSON
+					(filterAttrs (_: t: ! t?system || t.system == system))
+					(mapAttrs (_: t: env {
+						groups = t.groups or [];
+						extras = attrVals (t.extras or []) pkgs;
+						text = concatStringsSep "\n" t.script;
+					}))
+				];
+
+				apps = with lib; mapAttrs (_: drv: { type = "app"; program = getExe drv; }) ci;
+
+				devShells = with lib.attrsets; unionOfDisjoint
+					(mapAttrs (_: x: x.override { text = null; }) ci) {
 					default = env {
 						groups = lib.attrNames dependencies;  # All dependencies groups
 						extras = with pkgs; [
@@ -71,7 +52,7 @@
 							ruff
 							yamllint
 						];
-      	  };
+					};
 				};
 	});
 }

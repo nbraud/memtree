@@ -1,0 +1,61 @@
+{
+  "test": {
+    "changesInclude": [
+      "**/*.py"
+    ],
+    "groups": [
+      "run",
+      "test"
+    ],
+    "script": [
+      "python -m pytest -v"
+    ]
+  },
+  "lint-py": {
+    "system": "x86_64-linux",
+    "changesInclude": [
+      "**/*.py"
+    ],
+    "extras": [
+      "ruff"
+    ],
+    "script": [
+      "ruff check .",
+      "ruff format --check --diff ."
+    ]
+  },
+  "lint-nix": {
+    "system": "x86_64-linux",
+    "changesInclude": [
+      "**/*.nix",
+      ".ci/tasks.yml"
+    ],
+    "extras": [
+      "deadnix",
+      "jq"
+    ],
+    "script": [
+      "deadnix -h --output-format json | jq -cf ./.ci/deadnix.jq > deadnix.json",
+      "! [ -s ./deadnix.json ] || deadnix -h --fail"
+    ],
+    "on_failure": {
+      "artifacts": {
+        "path": "*.json",
+        "type": "text/json",
+        "format": "cirrus"
+      }
+    }
+  },
+  "lint-yaml": {
+    "system": "x86_64-linux",
+    "changesInclude": [
+        ".cirrus.yml"
+    ],
+    "extras": [
+      "yamllint"
+    ],
+    "script": [
+        "yamllint ./.cirrus.yml"
+    ]
+  }
+}
