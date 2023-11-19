@@ -66,7 +66,7 @@ nixlint_task:
 
 # Testing the packaging
 flake_task:
-  name: Devour the Nix flake
+  name: Check the Nix flake
   # Incorrect in principle, as the build depends on memtree's source but it's
   #  slow and highly-unlikely to fail without the integration task failing too
   only_if: >
@@ -74,12 +74,9 @@ flake_task:
     || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
     || $CIRRUS_BRANCH =~ 'staging|trying'
   <<: *task
-  env:
-    FLAKE_OUTPUT: .#devour-self
-  script: nix run .#devour-self | tee outputs
-  cache_update_script: >
-    [ -z "$CACHIX_AUTH_TOKEN" ]
-    || cachix push "$CACHIX_CACHE_NAME" < ./outputs
+  build_script: []
+  script: nix flake check
+  cache_update_script: []  # TODO: find a nice way to cache this
 
 
 # Meta-task used by services like Bors or GitHub to check overall success
@@ -88,7 +85,7 @@ success_task:
   container: {image: "busybox"}
   script: "exit 0"
   depends_on:
-    - Devour the Nix flake
+    - Check the Nix flake
     - Lint the Python source
     - Lint .cirrus.yml
     - Lint the Nix code
