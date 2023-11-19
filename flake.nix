@@ -25,7 +25,7 @@
 				in
 					pkgs.writeText "memtree-flake-outputs" (concatLines drvs);
 
-				packages = with pkgs; {
+				packages = {
 					default = memtree;
 				};
 
