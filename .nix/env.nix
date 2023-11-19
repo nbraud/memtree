@@ -9,17 +9,21 @@ in
 { pkgs ? import nixpkgs { } }:
 { groups ? []
 , extras ? []
+, name ? "env"
 , text ? null
 }:
 
 let
 	inherit (pkgs) lib mkShell writeShellApplication python3;
 	inherit (pkgs.callPackage ./package.nix { }) dependencies;
+
+	_name = "memtree-${name}";
 in
 
 with lib;
 makeOverridable (args: with args;
 	let
+		name = _name;  # Silly workaround for let-bindings always being recursive
 		union = groups: pyPkgs: concatMap (f: f pyPkgs) groups;
 		inputs = optional (groups != []) (pipe dependencies [
 			(attrVals groups)
@@ -29,11 +33,11 @@ makeOverridable (args: with args;
 	in
 	if text == null
 	then mkShell {
+		inherit name;
 		nativeBuildInputs = inputs;
 	}
 	else writeShellApplication {
-		name = "memtree-env";  # TODO: individualize?
+		inherit name text;
 		runtimeInputs = inputs;
-		inherit text;
 	}
 ) { inherit groups extras text; }

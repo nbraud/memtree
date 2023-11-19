@@ -32,7 +32,8 @@
 				ci = with lib; pipe ./.ci/tasks.json [
 					importJSON
 					(filterAttrs (_: t: ! t?system || t.system == system))
-					(mapAttrs (_: t: env {
+					(mapAttrs (name: t: env {
+						inherit name;
 						groups = t.groups or [];
 						extras = attrVals (t.extras or []) pkgs;
 						text = concatStringsSep "\n" t.script;
