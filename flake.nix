@@ -65,9 +65,10 @@
 					default = env {
 						groups = lib.attrNames dependencies;  # All dependencies groups
 						extras = with pkgs; [
-							deadnix
+							deadnix jq
 							python3Packages.ipython
 							poetry
+							ruff
 							yamllint
 						];
       	  };
