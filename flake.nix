@@ -32,31 +32,47 @@
 					devour-self = writeShellScriptBin "devour-self" ''
 						exec ${lib.getExe (callPackage devour-flake {})} "$PWD" "$@"
 					'';
-					lint = env {
-						extras = [ python3 ];
-						groups = [ "lint" ];
-						text   = "exec ${bork.aliases.lint}";
-					};
 					test = env {
-						extras = [ python3 ];
 						groups = [ "run" "test" ];
 						text   = "exec ${bork.aliases.test}";
 					};
+					lint-py = env {
+						extras = [ ruff ];
+						text   = "exec ${bork.aliases.lint}";
+					};
+					lint-nix = env {
+						extras = [ deadnix jq ];
+						text = ''
+							deadnix -h --output-format json | \
+								jq -cf ./.ci/deadnix.jq > deadnix.json
+
+							# If output was produced, rerun to get a human-readable version too
+							! [ -s ./deadnix.json ] || \
+								deadnix -h --fail
+						'';
+					};
+					lint-yaml = env {
+						extras = [ yamllint ];
+						text = ''
+							yamllint ./.cirrus.yml
+						'';
+					};
 				};
 
-				devShells = lib.genAttrs [ "lint" "test" ] (name:
-					packages.${name}.override { text = null; }
-				) // {
+				devShells = with lib; mapAttrsRecursiveCond
+					(x: !(isDerivation x))
+					(_: x: if isDerivation x then x.override { text = null; } else x)
+					{ inherit (packages) lint-py lint-nix lint-yaml test; }
+				// {
 					default = env {
 						groups = lib.attrNames dependencies;  # All dependencies groups
 						extras = with pkgs; [
 							deadnix
-							python3
 							python3Packages.ipython
 							poetry
 							yamllint
 						];
-          };
+      	  };
 				};
-			});
+	});
 }

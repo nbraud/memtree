@@ -7,22 +7,25 @@ let
 in
 
 { pkgs ? import nixpkgs { } }:
-{ groups
+{ groups ? []
 , extras ? []
 , text ? null
 }:
 
 let
-	inherit (pkgs) lib mkShell writeShellApplication;
+	inherit (pkgs) lib mkShell writeShellApplication python3;
 	inherit (pkgs.callPackage ./package.nix { }) dependencies;
 in
 
-lib.makeOverridable (args: with args;
+with lib;
+makeOverridable (args: with args;
 	let
-		inputs = with lib; pipe dependencies [
+		union = groups: pyPkgs: concatMap (f: f pyPkgs) groups;
+		inputs = optional (groups != []) (pipe dependencies [
 			(attrVals groups)
-			flatten
-		] ++ extras;
+			union
+			python3.withPackages
+		]) ++ extras;
 	in
 	if text == null
 	then mkShell {
