@@ -21,13 +21,23 @@
 				env = import ./.nix/env.nix { inherit pkgs; };
 			in rec {
 				checks.devour = with lib; let
-					drvs = concatMap attrValues [ packages devShells ];
+					# Not checking that the container images build: they are built & used in CI anyhow
+					drvs = attrValues devShells ++ [ defaultPackage ];
 				in
 					pkgs.writeText "memtree-flake-outputs" (concatLines drvs);
 
-				packages = {
-					default = memtree;
-				};
+				defaultPackage = memtree;
+
+				packages = with lib; mapAttrs'
+					(name: program: {
+						name = "${name}-image";
+						value = pkgs.ociTools.buildContainer {
+							args = [ (program.override { text = null; }) ];
+							readonly = true;
+							arch = removeSuffix "-linux" system;
+						};
+					})
+				  ci;
 
 				ci = with lib; pipe ./.ci/tasks.json [
 					importJSON
