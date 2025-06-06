@@ -90,11 +90,11 @@
 					'';
 				};
 
-				devShells = lib.mapAttrs (_: memtree: pkgs.mkShell {
+				devShells = lib.mapAttrs (name: memtree: pkgs.mkShell {
 					nativeBuildInputs = [
 						pkgs.deadnix
 						pkgs.yamllint
-						(memtree.interpreter.withPackages (pyPkgs: with pyPkgs; [
+						(memtree.interpreter.withPackages (pyPkgs: with pyPkgs; lib.optional (name == "default") [
 							ipython
 							pytest
 						] ++ memtree.build-system ++ memtree.dependencies))
