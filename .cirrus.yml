@@ -7,87 +7,23 @@ use_compute_credits: |
   $CIRRUS_BRANCH =~ 'staging|trying'
 
 
-Test_task: &task
-  env:
-    CACHIX_CACHE_NAME: memtree
-    CACHIX_AUTH_TOKEN: >
-      ENCRYPTED[80ed347b44a4127b859772f4455bea4085b4c245fcb
-      0a21587ae322cb3bcb1705d2f95dc5580fa2ce60dd3550db7e7cb]
-    FLAKE_OUTPUT: .#test
-  container:
-    image: nixpkgs/cachix
-  nix_config_file:
-    path: /etc/nix/nix.conf
-    from_contents: |
-      experimental-features = flakes nix-command
-  config_script: cachix use "$CACHIX_CACHE_NAME"
-  build_script: nix build $FLAKE_OUTPUT
-  script: nix run $FLAKE_OUTPUT
-  cache_update_script: |
-    [ -z "$CACHIX_AUTH_TOKEN" ] || {
-      realpath ./result | cachix push "$CACHIX_CACHE_NAME"
-    }
-
-Integration_task:
-  <<: *task
-  env:
-    FLAKE_OUTPUT: .
-
-
 # TODO: Convert ruff's output to GitHub annotations
-ruff_task:
+ruff_task: &task
   name: Lint the Python source
-  <<: *task
+  container:
+    image: nixpkgs/nix-flakes
+  script: nix run $FLAKE_APP
   env:
-    FLAKE_OUTPUT: .#lint-py
-
-
-# Linting the CI & Nix configuration
-#  using non-pinned versions through nixery.dev is “probably fine” here
-yaml_task:
-  name: Lint .cirrus.yml
-  only_if: changesInclude('.cirrus.yml', 'flake.lock', 'flake.nix')
-  <<: *task
-  env:
-    FLAKE_OUTPUT: .#lint-yaml
+    FLAKE_APP: .#lint
 
 nixlint_task:
   name: Lint the Nix code
   only_if: changesInclude('.cirrus.yml', 'flake.lock', '**/*.nix')
   <<: *task
   env:
-    FLAKE_OUTPUT: .#lint-nix
+    FLAKE_APP: .#deadnix
   always:
     artifacts:
       path: "*.json"
       type: text/json
       format: cirrus
-
-
-# Testing the packaging
-flake_task:
-  name: Check the Nix flake
-  # Incorrect in principle, as the build depends on memtree's source but it's
-  #  slow and highly-unlikely to fail without the integration task failing too
-  only_if: >
-    changesInclude('.cirrus.yml', '*.nix', 'flake.lock', 'pyproject.toml')
-    || $CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH
-    || $CIRRUS_BRANCH =~ 'staging|trying'
-  <<: *task
-  build_script: []
-  script: nix flake check
-  cache_update_script: []  # TODO: find a nice way to cache this
-
-
-# Meta-task used by services like Bors or GitHub to check overall success
-success_task:
-  name: CI success
-  container: {image: "busybox"}
-  script: "exit 0"
-  depends_on:
-    - Check the Nix flake
-    - Lint the Python source
-    - Lint .cirrus.yml
-    - Lint the Nix code
-    - Test
-    - Integration

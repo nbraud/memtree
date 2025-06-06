@@ -14,63 +14,87 @@
 	outputs = { flake-utils, nixpkgs, ... }:
 		flake-utils.lib.eachDefaultSystem (system:
 			let
-				pkgs = import nixpkgs { inherit system; };
+				pkgs = import nixpkgs {
+					inherit system;
+					config.allowAliases = false;
+				};
+
 				inherit (pkgs) lib;
+				inherit (lib.importTOML ./pyproject.toml) bork tool;
 
-				inherit (pkgs.callPackage ./.nix/package.nix {}) dependencies memtree;
-				bork = (lib.importTOML ./pyproject.toml).tool.bork;
-				env = import ./.nix/env.nix { inherit pkgs; };
+				minVersion = "3.10";  # TODO extract from pyproject.toml
+				pythonInterpreters = lib.filterAttrs (_: pyDrv: lib.all lib.id [
+					(lib.isDerivation pyDrv)
+					(lib.versionAtLeast pyDrv.version minVersion)
+					(!pyDrv.isPyPy)  # HACK due to poetry-core incompatibility
+				]) (pkgs.pythonInterpreters // {
+					default = pkgs.python3;
+				});
+
 			in rec {
-				checks.devour = with lib; let
-					drvs = concatMap attrValues [ packages devShells ];
-				in
-					pkgs.writeText "memtree-flake-outputs" (concatLines drvs);
+				packages = lib.mapAttrs (_: py: py.pkgs.buildPythonApplication {
+					pname = "memtree";
+					inherit (tool.poetry) version;
 
-				packages = with pkgs; {
-					default = memtree;
+					format = "pyproject";
+					src = with lib.fileset;
+						toSource {
+							root = ./.;
+							fileset = unions [
+								./pyproject.toml
+								./memtree
+								./tests
+							];
+						};
 
-					# TODO: Convert into “apps”
-					test = env {
-						groups = [ "run" "test" ];
-						text   = "exec ${bork.aliases.test}";
-					};
-					lint-py = env {
-						extras = [ ruff ];
-						text   = "exec ${bork.aliases.lint}";
-					};
-					lint-nix = env {
-						extras = [ deadnix jq ];
-						text = ''
-							deadnix -h --output-format json | \
-								jq -cf ./.ci/deadnix.jq > deadnix.json
+					build-system = with py.pkgs; [
+						poetry-core
+					];
 
-							# If output was produced, rerun to get a human-readable version too
-							! [ -s ./deadnix.json ] || \
-								deadnix -h --fail
-						'';
-					};
-					lint-yaml = env {
-						extras = [ yamllint ];
-						text = ''
-							yamllint ./.cirrus.yml
-						'';
-					};
+					dependencies = with py.pkgs; [
+						rich
+					];
+
+					nativeCheckInputs = with py.pkgs; [
+						hypothesis
+						pytestCheckHook
+					];
+					pytestFlagsArray = [ "-v" ];
+					pythonImportsCheck = [ "memtree" ];
+
+					passthru.interpreter = py;
+					meta.platforms = lib.platforms.linux;
+				}) pythonInterpreters;
+
+				apps = lib.mapAttrs (cmd: txt: {
+					type = "app";
+					program = toString (pkgs.writeShellScript "memtree-${cmd}" txt);
+				}) {
+					lint = ''
+						export PATH=${lib.makeBinPath [ pkgs.python3.pkgs.bork pkgs.ruff ]}
+						exec bork run lint
+					'';
+					deadnix = ''
+						export PATH=${lib.makeBinPath (with pkgs; [ deadnix jq ])}
+						deadnix -h --output-format json | \
+							jq -cf ${toString ./.ci/deadnix.jq} > deadnix.json
+
+						# If output was produced, rerun to get a human-readable version too
+						! [ -s ./deadnix.json ] || \
+							deadnix -h --fail
+					'';
 				};
 
-				devShells = with lib; mapAttrsRecursiveCond
-					(x: !(isDerivation x))
-					(_: x: if isDerivation x then x.override { text = null; } else x)
-					{ inherit (packages) lint-py lint-nix lint-yaml test; }
-				// {
-					default = env {
-						groups = lib.attrNames dependencies;  # All dependencies groups
-						extras = with pkgs; [
-							deadnix
-							python3Packages.ipython
-							poetry
-							yamllint
-						];
-      	  };
-				};
+				devShells = lib.mapAttrs (name: memtree: pkgs.mkShell {
+					nativeBuildInputs = [
+						pkgs.deadnix
+						pkgs.yamllint
+						(memtree.interpreter.withPackages (pyPkgs: with pyPkgs; lib.optional (name == "default") [
+							ipython
+							pytest
+						] ++ memtree.build-system ++ memtree.dependencies))
+					];
+				}) packages;
+
 	});
 }
