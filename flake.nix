@@ -32,11 +32,6 @@
 				});
 
 			in rec {
-				checks.devour = with lib; let
-					drvs = concatMap attrValues [ packages ]; # FIXME devShells
-				in
-					pkgs.writeText "memtree-flake-outputs" (concatLines drvs);
-
 				packages = lib.mapAttrs (_: py: py.pkgs.buildPythonApplication {
 					pname = "memtree";
 					inherit (tool.poetry) version;
