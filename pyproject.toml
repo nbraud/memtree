@@ -42,6 +42,9 @@ name = "memtree"
 
 
 [tool.ruff]
+line-length = 80
+
+[tool.ruff.lint]
 select = [
        "ANN",     # require function annotations
        "ARG",     # unused arguments
@@ -66,11 +69,9 @@ select = [
        "UP",      # pyupgrade: warn on obsolete syntax
 ]
 ignore = [
-       "ANN101", "ANN102",   # `self` and `cls` have implicit type annotations
        "E401",               # allow multiple imports on one line
        "COM812",             # incompatible with `ruff format`
 ]
-line-length = 80
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

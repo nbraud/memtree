@@ -88,6 +88,7 @@
 				devShells = lib.mapAttrs (name: memtree: pkgs.mkShell {
 					nativeBuildInputs = [
 						pkgs.deadnix
+						pkgs.ruff
 						pkgs.yamllint
 						(memtree.interpreter.withPackages (pyPkgs: with pyPkgs; lib.optional (name == "default") [
 							ipython
