@@ -71,7 +71,7 @@ def tree(
             t = Tree(f"{demangle_name(p.name)}: {m}")
         else:
             t = Tree(
-                f"{demangle_name(p.name)}: {m} ({100 * m/total_mem :.0f}%)",
+                f"{demangle_name(p.name)}: {m} ({100 * m / total_mem:.0f}%)",
                 style=palette(m / total_mem),
             )
 
