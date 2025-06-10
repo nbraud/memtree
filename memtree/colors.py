@@ -1,7 +1,8 @@
 import json
+from collections.abc import Sequence
 from functools import cache
 from importlib import resources
-from typing import Any, Callable, Sequence, Tuple, TypeVar
+from typing import Any, Callable, Tuple, TypeVar
 from warnings import warn
 
 T = TypeVar("T", str, Sequence[str])
